@@ -230,26 +230,43 @@ const INC = [
 ];
 
 /* ---------------- Additional trackable forms (from HydroApps) ---------------- */
-const FLOWRIDER = [
- {sec:'Release of Liability — FlowRider®'},
- {note:'In consideration of being permitted to use the FlowRider® / sheet-wave attraction operated by StandGuard Aquatics, I (the participant, or the parent/legal guardian of a participant under 18) acknowledge and agree to the following. This is a release of legal rights — please read it carefully before signing.'},
- {note:'ASSUMPTION OF RISK — Sheet-wave riding involves inherent risks and dangers that cannot be eliminated regardless of instruction, supervision or care, including the risk of serious injury, permanent disability or death. These include falls and collisions on the wet riding surface; contact with the ride surface, equipment or other riders; the actions of other participants; and the condition of the attraction, walkways and common areas. I knowingly and voluntarily assume all such risks, whether foreseeable or not.'},
- {note:'RELEASE & WAIVER — To the fullest extent permitted by law, I release, waive, discharge and agree not to sue StandGuard Aquatics, the facility and its owner, Wave Loch, Inc. / the FlowRider® manufacturer, and each of their officers, directors, employees, agents and affiliates (the “Released Parties”) from any and all liability, claims or demands for personal injury, property damage or wrongful death arising out of my participation — including claims based on the ordinary or gross negligence of the Released Parties.'},
- {note:'RULES & FITNESS — I agree to follow all posted rules and staff instructions at all times, to meet all height, weight and ability requirements, and to stop riding immediately if instructed. I confirm the participant is in good health and physically able to participate.'},
- {note:'INDEMNITY — I agree to indemnify and hold the Released Parties harmless from any claim brought by me or on my behalf, including reasonable attorney fees.'},
+const FLOWRIDER_FIELDS = [
+ {sec:'FlowRider® Release of Liability'},
+ {note:'I, the undersigned, hereby voluntarily release, discharge, waive and relinquish any and all claims or causes of action for personal injury, property damage, or wrongful death which may arise out of or in connection with my participation (or the minor for whom I am legal guardian) in the simulated sheet wave surfing attraction known as the FlowRider® located at Cove Waterpark located at 4310 Camino Real Jurupa Ca 92509 no matter how such injuries or damages may occur.'},
+ {note:'I UNDERSTAND AND ACKNOWLEDGE THAT SHEET WAVE RIDING ACTIVITIES HAVE INHERENT DANGERS THAT NO AMOUNT OF CARE, CAUTION, INSTRUCTION, OR EXPERTISE CAN ELIMINATE, AND I EXPRESSLY AND VOLUNTARILY ASSUME ALL RISK OF PERSONAL INJURY OR DEATH, WHETHER FORSEEABLE OR NOT, SUSTAINED IN CONNECTION WITH PARTICIPATING ON OR AROUND THE FLOWRIDER®.'},
+ {note:'Moreover, the fact that I am here proves that the benefits provided by the FlowRider®, for me, outweigh the described risks. In consideration of the benefits received, I further agree, and hereby forever release and discharge The DropZone Waterpark, StandGuard Aquatics INC, and Riverside County; and all of their respective officers, directors, members, agents, and employees (hereinafter collectively as “Releasees”), from any and all liabilities, claims, demands, or causes of action, present or future, known or unknown, that I or my heirs may hereafter have at any time for injuries, damages or death. Furthermore, under no circumstances will I nor any of my heirs, guardians, legal representatives and assigns present or future bring any claim for personal injury, property damage, or wrongful death against RELEASEES or any officer, director, member, agent, servant or employee of RELEASEES, based upon RELEASEES ordinary and/or gross negligent acts or omissions. Such waiver and release includes, but is not limited to those arising from: 1) exercise or use of the Attraction, flowboards, or adjacent facilities; 2) patent, latent or hidden defective conditions in the Attraction, flowboards, or premises; 3) improper or inadequate instruction or supervision; 4) medical treatment rendered, or failed to be rendered by Releasees; 5) incidents in wet areas, such as Attraction surfaces, decks, matting, grating, or concrete; 6) equipment breaking or malfunctioning; 7) incidents in the parking facilities or common areas of the Site; 8) and any negligence, passive or active, on the part of Releasees. I further confirm that no sale, lease or bailment of a product is being created, and that Releasees are providing recreational services.'},
+ {note:'ACCORDINGLY, I WAIVE AND RELEASE RELEASEES FROM ANY AND ALL CLAIMS OR CAUSES OF ACTION THAT I, OR THE MINOR (WHO I AM SIGNING ON BEHALF OF), MAY HAVE IN CONNECTION WITH THE FLOWRIDER®, ITS FLOWBOARDS, OR ASSOCIATED USE. I FURTHER AGREE TO DEFEND AND INDEMNIFY (INCLUDING ATTORNEYS FEES) RELEASEES, AND EACH OF THEM, FOR ANY CLAIM OR ACTION THAT IS BROUGHT AGAINST THEM RELATING TO, OR ARISING OUT OF, OR IN ANY CONNECTION TO, THE FLOWRIDER®, ITS FLOWBOARDS, OR ASSOCIATED USE.'},
+ {note:'I, individually, and/or on behalf of the minor participant listed below, also hereby agree to a blanket release of all rights related to my audio and photographic image that may arise out of my participation in activities on or around the FLOWRIDER® water attraction. I understand that this release includes any and all marketing, promotion or advertising that may occur anywhere and anytime on any media as later used by RELEASEES or any of their representatives or assigns.'},
+ {note:'For STANDGUARD AQUATICS INC AND THE COUNTY OF RIVERSIDE, this RELEASE shall be construed and enforced in accordance with the laws of the State of California, and any action at law, suit in equity, or other jurisdictional proceeding arising in connection with this Agreement or my participation on the FlowRider®, shall be instituted only in the courts of the State of California with venue in Riverside County, California.'},
+ {note:'I AM AWARE THAT THIS RELEASE IS LEGALLY BINDING AND THAT I AM RELEASING LEGAL RIGHTS BY SIGNING BELOW.'},
+ {sec:'Participant'},
  {q:'Participant full name (printed)', t:'text', req:1, key:'name'},
  {q:'Date of birth', t:'date', req:1},
- {q:'Parent / guardian name (required if participant is under 18)', t:'text'},
- {q:'Phone', t:'text'},
  {q:'Email', t:'text'},
- {q:'I consent to photos / video of the participant being used for StandGuard Aquatics marketing (optional)', t:'check'},
+ {q:'Phone', t:'text'},
+ {q:'Parent / guardian name (required if participant is under 18)', t:'text'},
  {q:'I have read and understand this release and agree to its terms', t:'check', req:1},
+ {q:'Signature (participant, or parent / guardian if under 18)', t:'sign', req:1},
+];
+const SCUBA_FIELDS = [
+ {sec:'Scuba Training Facility Use Waiver'},
+ {note:'I acknowledge that StandGuard Aquatics, Jacobs Aquatics Center, and Monroe County are not providing scuba instruction, supervision, or equipment and are only permitting use of facility space to an independent scuba company.'},
+ {note:'I understand that scuba training involves inherent risks, including serious injury or death, and I voluntarily assume all risks associated with my participation.'},
+ {note:'In consideration of being allowed to use the facility, I release and waive all claims against StandGuard Aquatics, Jacobs Aquatics Center, and Monroe County, including claims arising from their negligence, to the fullest extent permitted by Florida law.'},
+ {note:'I acknowledge that I am giving up important legal rights and agree to this waiver voluntarily.'},
+ {sec:'Participant'},
+ {q:'Participant full name (printed)', t:'text', req:1, key:'name'},
+ {q:'Date of birth', t:'date', req:1},
+ {q:'Email', t:'text'},
+ {q:'Phone', t:'text'},
+ {q:'Parent / guardian name (required if participant is under 18)', t:'text'},
+ {q:'I have read and understand this waiver and agree to its terms', t:'check', req:1},
  {q:'Signature (participant, or parent / guardian if under 18)', t:'sign', req:1},
 ];
 // Facility-level forms. needsPool = only shown where a facility has that pool/ride.
 const FORMS = [
- {id:'flowrider', title:'Flow Rider Waiver', desc:'FlowRider release of liability', kind:'waiver', facilities:['DropZone Waterpark','Cove Waterpark'], templateId:'5r6bwgcafbwci6hzwuvjfy', url:'https://waiver.smartwaiver.com/w/5r6bwgcafbwci6hzwuvjfy/web/'},
- {id:'scuba', title:'Scuba Waiver', desc:'Scuba release of liability', kind:'waiver', facilities:['Jacobs Aquatic Center'], templateId:'7dkglbbdfzidmb3s7krdwc', url:'https://waiver.smartwaiver.com/w/7dkglbbdfzidmb3s7krdwc/web/'},
+ {id:'flowrider', title:'Flow Rider Waiver', desc:'FlowRider release of liability', kind:'waiver', facilities:['DropZone Waterpark','Cove Waterpark'], fields:FLOWRIDER_FIELDS},
+ {id:'scuba', title:'Scuba Waiver', desc:'Scuba release of liability', kind:'waiver', facilities:['Jacobs Aquatic Center'], fields:SCUBA_FIELDS},
 ];
 function facForms(f){return FORMS.filter(fm=>!fm.facilities||fm.facilities.includes(f));}
 function facSubs(f){return DB.forms.filter(s=>s.facility===f).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
@@ -354,6 +371,7 @@ function renderFacility(){
  if(state.view==='fillForm'){renderFillForm(f,state.formId,'facility');return;}
  if(state.view==='waiver'){renderWaiver(f,state.formId);return;}
  if(state.view==='waiverLog'){renderWaiverLog(f,state.formId);return;}
+ if(state.view==='formView'){renderFormView(f,state.formId,state.subId);return;}
  if(state.view==='incidentView'){renderIncidentView(f,state.incId);return;}
  if(state.view==='incidentPick'){renderIncidentPick(f);return;}
  const pools=poolsOf(f);
@@ -418,52 +436,60 @@ function formsCard(f,ctx){
  const forms=facForms(f);
  if(!forms.length) return '';
  return `<div class="card"><div class="hd">Waivers <span class="pill info">${forms.length}</span></div><div class="bd">
-   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device, or pull up waivers that have already been signed.</div>
-   ${forms.map(fm=>`<div class="waivblock">
-     <div class="waivtitle">${esc(fm.title)}</div>
+   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device, or pull up waivers that have already been signed. Signed waivers are stored right in the app.</div>
+   ${forms.map(fm=>{const n=DB.forms.filter(s=>s.facility===f&&s.formId===fm.id).length;return `<div class="waivblock">
+     <div class="waivtitle">${esc(fm.title)}${n?` <span class="pill info">${n} signed</span>`:''}</div>
      <div class="btnrow">
-       <button class="btn btn-p" onclick='go({view:"waiver",formId:"${fm.id}"})'>${IC.doc} Sign new</button>
+       <button class="btn btn-p" onclick='go({view:"fillForm",formId:"${fm.id}"})'>${IC.doc} Sign new</button>
        <button class="btn btn-g" onclick='go({view:"waiverLog",formId:"${fm.id}"})'>${IC.list} View signed</button>
      </div>
-   </div>`).join('')}
+   </div>`}).join('')}
  </div></div>`;
 }
 function renderWaiverLog(f,formId){
  const form=FORMS.find(x=>x.id===formId); if(!form){goMenu();return;}
+ const subs=DB.forms.filter(s=>s.facility===f&&s.formId===formId).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
  const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,formId:null})`;
- const cached=SW_CACHE[form.id]||null;
- let body;
- if(!SW_ENDPOINT){
-  body=`<div class="empty" style="text-align:left;line-height:1.6">The signed-waiver roster turns on once your SmartWaiver account is connected. In the meantime you can open every signed ${esc(form.title)} here:<br><br>
-   <a href="https://www.smartwaiver.com/console/dashboard/waivers/" target="_blank" rel="noopener" class="btn btn-p" style="text-decoration:none">Open signed waivers in SmartWaiver ↗</a></div>`;
- } else {
-  body=cached?swRows(cached,form):'<div class="empty">Loading signed waivers…</div>';
- }
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
   <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
    <div><div class="crumb">${esc(f)} · Signed waivers</div><h2 class="pt">${esc(form.title)}</h2></div></div>
   <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button>
-   <a href="${form.url}" target="_blank" rel="noopener" class="btn btn-g" style="text-decoration:none">Sign a new one ↗</a></div>
-  <div class="card"><div class="hd">Signed ${esc(form.title)}${cached?` <span class="pill info">${cached.length}</span>`:''}</div>
-   <div class="bd" id="swlog">${body}</div></div>
+   <button class="btn btn-p" onclick='go({view:"fillForm",formId:"${form.id}"})'>${IC.doc} Sign a new one</button></div>
+  <div class="card"><div class="hd">Signed ${esc(form.title)} <span class="pill info">${subs.length}</span></div>
+   <div class="bd">${subs.length?subs.map(s=>`<div class="logrow" style="cursor:pointer" onclick='go({view:"formView",formId:"${form.id}",subId:${JSON.stringify(s.id)}})'>
+     <div><b style="font-size:14px">${esc(s.summary||'Signed waiver')}</b>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">${fmt(s.createdAt)}${s.by?(' · '+esc(s.by)):''}</div></div>
+     <span class="pill info">View ›</span></div>`).join(''):'<div class="empty">No signed waivers yet. Tap “Sign a new one” to add the first.</div>'}
+   </div></div>
  </div></div>`;
- if(SW_ENDPOINT&&!cached){ loadSignedWaivers(form).then(rows=>{ const el=document.getElementById('swlog'); if(el) el.innerHTML=rows.length?swRows(rows,form):'<div class="empty">No signed waivers yet.</div>'; })
-   .catch(()=>{ const el=document.getElementById('swlog'); if(el) el.innerHTML=`<div class="empty">Couldn't load signed waivers right now. <a href="${form.url}" target="_blank" rel="noopener" style="color:#0000FF;font-weight:700">Open in SmartWaiver ↗</a></div>`; }); }
 }
-function swRows(list,form){
- if(!list.length) return '<div class="empty">No signed waivers yet.</div>';
- return list.map(w=>`<div class="logrow"><div><b style="font-size:14px">${esc(((w.firstName||'')+' '+(w.lastName||'')).trim()||'Signed waiver')}</b>
-   <div style="font-size:12px;color:#64748b;margin-top:2px">${fmt(w.createdOn||w.createdAt)}${w.tag?(' · '+esc(w.tag)):''}</div></div>
-   <a href="https://www.smartwaiver.com/console/dashboard/waivers/${esc(w.waiverId||'')}" target="_blank" rel="noopener" class="pill info" style="text-decoration:none">View ›</a></div>`).join('');
-}
-/* SmartWaiver roster — populated once an API proxy is configured (see SW_ENDPOINT). */
-let SW_READY=false; const SW_CACHE={};
-const SW_ENDPOINT=null; // set to secure proxy URL to enable live roster
-async function loadSignedWaivers(form){
- if(!SW_ENDPOINT) throw new Error('roster proxy not configured');
- const r=await fetch(SW_ENDPOINT+'?templateId='+encodeURIComponent(form.templateId));
- const j=await r.json(); const rows=(j.waivers||j.data||j||[]);
- SW_CACHE[form.id]=rows; return rows;
+function renderFormView(f,formId,subId){
+ const form=FORMS.find(x=>x.id===formId); const sub=DB.forms.find(s=>s.id===subId);
+ if(!form||!sub){goMenu();return;}
+ const back=`go({view:'waiverLog',formId:'${formId}'})`;
+ const rows=[]; let idx=0;
+ (form.fields||[]).forEach(fd=>{
+  if(fd.sec){ rows.push(`<div class="section" style="margin-top:16px">${esc(fd.sec)}</div>`); return; }
+  if(fd.note){ return; }
+  const v=sub.vals?sub.vals['g_'+idx]:null; idx++;
+  if(v==null||v===''||v===false) return;
+  if(fd.t==='sign'&&typeof v==='string'&&v.indexOf('data:image')===0){
+   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div><img src="${v}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`);
+  } else if(fd.t==='check'){
+   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div style="font-weight:700;color:#12294d">Yes ✓</div></div>`);
+  } else {
+   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div style="font-weight:700;color:#12294d">${esc(String(v))}</div></div>`);
+  }
+ });
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · ${esc(form.title)}</div><h2 class="pt">${esc(sub.summary||'Signed waiver')}</h2></div></div>
+  <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button></div>
+  <div class="card"><div class="bd">
+   <div style="font-size:12px;color:#64748b;margin-bottom:6px">Signed ${fmt(sub.createdAt)}${sub.by?(' · logged by '+esc(sub.by)):''}</div>
+   ${rows.join('')||'<div class="empty">No details recorded.</div>'}
+  </div></div>
+ </div></div>`;
 }
 function renderWaiver(f,formId){
  const form=FORMS.find(x=>x.id===formId);
@@ -484,10 +510,11 @@ function renderFillForm(f,formId,ctx){
  const back=ctx==='facility'?`go({view:null,formId:null})`:`go({view:'adminFacility'})`;
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
   <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
-   <div><div class="crumb">${esc(f)}</div><h2 class="pt">${esc(form.title)}</h2></div></div>
+   <div><div class="crumb">${esc(f)} · Sign waiver</div><h2 class="pt">${esc(form.title)}</h2></div></div>
+  <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button></div>
   <div class="card"><div class="bd"><div id="fform"></div>
    <div class="btnrow" style="margin-top:16px"><button class="btn btn-g" onclick="${back}">Cancel</button>
-    <button class="btn btn-p" onclick="saveForm('${esc(f)}','${form.id}')">Submit form</button></div>
+    <button class="btn btn-p" onclick="saveForm('${esc(f)}','${form.id}')">Submit &amp; save</button></div>
   </div></div></div></div>`;
  const root=document.getElementById('fform'); let i=0;
  form.fields.forEach(fd=>{
@@ -531,7 +558,7 @@ async function saveForm(f,formId){
  const summary = curForm.keyMap.name ? (curForm.vals[curForm.keyMap.name]||'') : '';
  const rec={id:uid('f'),facility:f,formId,title:form.title,kind:form.kind,summary,vals:curForm.vals,flags,by:session.name,createdAt:new Date().toISOString()};
  const ok=await cloudInsert('forms',f,rec); if(!ok) return;
- await refreshDB(); go({view:null,formId:null});
+ await refreshDB(); go({view:'waiverLog',formId});
 }
 function poolTile(f,p){
  const r=latestReading(f,p); const st=chemStatus(r);
@@ -658,6 +685,8 @@ async function saveIncident(f,p){
 function renderAdmin(){
  if(state.view==='waiver'&&state.facility){renderWaiver(state.facility,state.formId);return;}
  if(state.view==='waiverLog'&&state.facility){renderWaiverLog(state.facility,state.formId);return;}
+ if(state.view==='fillForm'&&state.facility){renderFillForm(state.facility,state.formId,'admin');return;}
+ if(state.view==='formView'&&state.facility){renderFormView(state.facility,state.formId,state.subId);return;}
  if(state.view==='incidentView'&&state.facility){renderIncidentView(state.facility,state.incId);return;}
  if(state.view==='adminFacility'&&state.facility){ if(state.pool){renderPool(state.facility,state.pool,'admin');return;} renderAdminFacility(state.facility); return; }
  if(state.view==='pool'&&state.facility&&state.pool){renderPool(state.facility,state.pool,'admin');return;}
