@@ -408,19 +408,21 @@ function renderIncidentView(f,incId){
  if(!inc){goMenu();return;}
  const d=inc.data||{};
  const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,incId:null})`;
+ const imgRow=(lab,src)=>`<div class="frow"><div class="lbl">${esc(lab)}</div><div><img src="${src}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`;
+ const txtRow=(lab,val)=>`<div class="frow"><div class="lbl">${esc(lab)}</div><div style="font-weight:700;color:#12294d">${esc(String(val))}</div></div>`;
+ const isImg=x=>typeof x==='string'&&x.indexOf('data:image')===0;
  const rows=[]; let pendingSection=null;
  incByIndex().forEach(m=>{
   if(m.sub){ pendingSection=`<div class="section" style="margin-top:16px">${esc(m.sub.sub)}</div>`; return; }
   const fd=m.fd; let v;
   if(fd.t==='time'){ const h=d['i_'+m.idx+'_h'],mm=d['i_'+m.idx+'_m']; v=(h||mm)?((h||'')+':'+(mm||'')):''; }
   else v=d['i_'+m.idx];
-  if(v==null||v===''||v===false) return;
+  const photo=d['i_'+m.idx+'_photo'];
+  const hasV=!(v==null||v===''||v===false);
+  if(!hasV&&!isImg(photo)) return;
   if(pendingSection){ rows.push(pendingSection); pendingSection=null; }
-  if(fd.t==='sign'&&typeof v==='string'&&v.indexOf('data:image')===0){
-   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div><img src="${v}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`);
-  } else {
-   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div style="font-weight:700;color:#12294d">${esc(String(v))}</div></div>`);
-  }
+  if(hasV) rows.push(isImg(v)?imgRow(fd.q,v):txtRow(fd.q,v));
+  if(isImg(photo)) rows.push(imgRow(fd.q+' — photo',photo));
  });
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
   <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
@@ -474,7 +476,7 @@ function renderFormView(f,formId,subId){
   if(fd.note){ return; }
   const v=sub.vals?sub.vals['g_'+idx]:null; idx++;
   if(v==null||v===''||v===false) return;
-  if(fd.t==='sign'&&typeof v==='string'&&v.indexOf('data:image')===0){
+  if(typeof v==='string'&&v.indexOf('data:image')===0){
    rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div><img src="${v}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`);
   } else if(fd.t==='check'){
    rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div style="font-weight:700;color:#12294d">Yes ✓</div></div>`);
@@ -543,7 +545,8 @@ function gControl(fd,i){
  else if(fd.t==='check'){w.innerHTML=`<label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" style="width:22px;height:22px;accent-color:#0000FF"><span style="font-size:14px;font-weight:600;color:#33465f">Yes, I agree</span></label>`;
    const cb=w.querySelector('input');cb.onchange=()=>{curForm.vals[id]=cb.checked;};}
  if(fd.comment){const c=document.createElement('textarea');c.placeholder='Comment (optional)';c.style.marginTop='8px';c.dataset.g=id+'_c';w.appendChild(c);}
- if(fd.photo){const pb=document.createElement('button');pb.type='button';pb.className='photo';pb.style.marginTop='8px';pb.textContent='📷 Add photo';w.appendChild(pb);}
+ if(fd.photo){const pb=document.createElement('button');pb.type='button';pb.className='photo';pb.style.marginTop='8px';pb.textContent='📷 Add photo';const pi=document.createElement('img');pi.className='hidden';pi.style.cssText='max-width:240px;width:100%;border:1px solid var(--line);border-radius:10px;margin-top:8px;display:block';
+   pb.onclick=()=>capturePhoto(dd=>{pi.src=dd;pi.classList.remove('hidden');pb.textContent='📷 Retake photo';curForm.vals[id+'_photo']=dd;});w.appendChild(pb);w.appendChild(pi);}
  return w;
 }
 async function saveForm(f,formId){
@@ -640,6 +643,28 @@ async function saveReading(f,p){
 
 /* ---------- Incident form ---------- */
 let incState={};
+/* ---------- photo capture (camera / library, downscaled) ---------- */
+function capturePhoto(cb){
+ const inp=document.createElement('input');
+ inp.type='file'; inp.accept='image/*'; inp.setAttribute('capture','environment');
+ inp.style.position='fixed'; inp.style.left='-9999px';
+ document.body.appendChild(inp);
+ inp.onchange=()=>{ const file=inp.files&&inp.files[0]; if(!file){inp.remove();return;}
+   const reader=new FileReader();
+   reader.onload=()=>{ downscaleImage(reader.result,1280,0.72,d=>{ cb(d); inp.remove(); }); };
+   reader.onerror=()=>{ alert('Could not read that photo. Please try again.'); inp.remove(); };
+   reader.readAsDataURL(file);
+ };
+ inp.click();
+}
+function downscaleImage(dataUrl,maxDim,quality,cb){
+ const img=new Image();
+ img.onload=()=>{ let w=img.width,h=img.height; const scale=Math.min(1,maxDim/Math.max(w,h||1)); w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
+   try{ const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',quality)); }
+   catch(e){ cb(dataUrl); } };
+ img.onerror=()=>cb(dataUrl);
+ img.src=dataUrl;
+}
 function renderIncidentForm(f,p,ctx){
  incState={sigs:{}};
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
@@ -668,7 +693,10 @@ function incControl(fd,i){
    w.querySelectorAll('button').forEach(b=>b.onclick=()=>{w.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');incState[id]=b.textContent;if(fd.key==='incident')incReveal(b.textContent);});}
  else if(fd.t==='sign'){w.innerHTML=`<img class="sigimg hidden"><button type="button" class="sign">✍️ Sign here</button>`;
    const img=w.querySelector('.sigimg'),btn=w.querySelector('.sign');btn.onclick=()=>openSig(d=>{img.src=d;img.classList.remove('hidden');btn.textContent='✍️ Re-sign';incState[id]=d;});}
- else if(fd.t==='photo'){w.innerHTML=`<button type="button" class="photo">📷 Take photo</button>`;}
+ else if(fd.t==='photo'){w.innerHTML=`<img class="phimg hidden" style="max-width:240px;width:100%;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;display:block"><button type="button" class="photo">📷 Take photo</button>`;
+   const pimg=w.querySelector('.phimg'),pbtn=w.querySelector('.photo');pbtn.onclick=()=>capturePhoto(d=>{pimg.src=d;pimg.classList.remove('hidden');pbtn.textContent='📷 Retake photo';incState[id]=d;});}
+ if(fd.photo&&fd.t!=='photo'){const pb=document.createElement('button');pb.type='button';pb.className='photo';pb.style.marginTop='8px';pb.textContent='📷 Add photo';const pi=document.createElement('img');pi.className='phimg hidden';pi.style.cssText='max-width:240px;width:100%;border:1px solid var(--line);border-radius:10px;margin-top:8px;display:block';
+   pb.onclick=()=>capturePhoto(d=>{pi.src=d;pi.classList.remove('hidden');pb.textContent='📷 Retake photo';incState[id+'_photo']=d;});w.appendChild(pb);w.appendChild(pi);}
  return w;
 }
 function tog(w,fd,id){w.querySelectorAll('.toggle').forEach(tg=>tg.querySelectorAll('button').forEach(b=>b.onclick=()=>{tg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(fd&&id)incState[id]=b.textContent;}));}
