@@ -283,7 +283,7 @@ function nowLocal(){const d=new Date();const o=d.getTimezoneOffset();return new 
 
 /* ---------------- Auth (accounts: one per facility + admin) ---------------- */
 // 4-digit PINs — one per facility + an admin PIN. Edit these to your real codes.
-const PINS={admin:'4321','Browns Mill':'1010','Cove Waterpark':'2020','DropZone Waterpark':'3030','Greshman':'4040','Jacobs Aquatic Center':'5050','Kittredge':'6060','Lithonia':'7070','Lou Walker':'8080','Medlock':'1212','Midway':'1313','NH Scott':'1414','Tobie Grant':'1515'};
+const PINS={admin:'1274','Browns Mill':'1010','Cove Waterpark':'2020','DropZone Waterpark':'3030','Greshman':'4040','Jacobs Aquatic Center':'5050','Kittredge':'6060','Lithonia':'7070','Lou Walker':'8080','Medlock':'1212','Midway':'1313','NH Scott':'1414','Tobie Grant':'1515'};
 const ACCOUNTS=[{id:'admin',name:'StandGuard Corporate',role:'admin',sub:'CEO / owner — sees all facilities',pin:PINS.admin}]
  .concat(FACILITIES.map(f=>({id:'fac_'+slug(f.f),name:f.f,role:'facility',facility:f.f,sub:'Facility account',pin:PINS[f.f]})));
 let session=null;
