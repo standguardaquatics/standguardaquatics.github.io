@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#0000FF"/>
+<title>StandGuard Aquatics</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--brand:#0000FF;--sky:#60b1ff;--navy:#0a1657;--bg:#eef2f7;--line:#e7ecf3;--muted:#64748b;--pink:#fbeff0;--pinkbrd:#f0d9dc;--ok:#0a9d5a;--warn:#e08a00;--danger:#d92b3f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:'Open Sans',system-ui,sans-serif;color:var(--navy);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+a{color:var(--brand)}
+.hidden{display:none!important}
+/* login */
+.login{min-height:100vh;display:flex;flex-direction:column}
+.login .hero{background:var(--brand);color:#fff;padding:34px 22px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.5px;font-size:15px}
+.badge{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.badge svg{width:26px;height:26px}
+.login h1{font-size:26px;margin:16px 0 4px}
+.login .sub{color:#dbe4ff;font-size:14px;max-width:520px}
+.login .body{flex:1;max-width:560px;margin:0 auto;width:100%;padding:24px 18px 60px}
+.seg{display:flex;background:#e6ebf3;border-radius:12px;padding:4px;margin-bottom:18px}
+.seg button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-weight:700;color:#5b6b82}
+.seg button.on{background:#fff;color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.acct{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid #e4e9f1;border-radius:14px;padding:14px;margin-bottom:10px}
+.acct:hover{border-color:var(--brand);background:#f5f7ff}
+.acct .ic{width:40px;height:40px;border-radius:10px;background:#eef2ff;color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.acct .nm{font-weight:700;display:block}.acct .rl{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+/* PIN pad */
+.pinwrap{max-width:330px;margin:0 auto;padding:32px 22px 60px;text-align:center}
+.pinprompt{font-weight:700;color:#48566d;font-size:15px;margin-bottom:18px}
+.dots{display:flex;gap:16px;justify-content:center;margin-bottom:8px}
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid #b9c4d8}
+.dot.on{background:var(--brand);border-color:var(--brand)}
+.pinerr{color:var(--danger);font-size:13px;font-weight:600;height:20px;margin-bottom:12px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.keypad button{height:66px;border:0;border-radius:16px;background:#fff;box-shadow:0 1px 5px rgba(10,22,87,.1);font-size:24px;font-weight:700;color:var(--navy);cursor:pointer}
+.keypad button:active{background:#eef2ff}
+.kp-blank{visibility:hidden;box-shadow:none!important;background:transparent!important}
+.kp-del{background:#eef1f6!important;box-shadow:none!important;font-size:22px!important}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* app shell */
+.shell{min-height:100vh}
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px}
+.top .l{display:flex;align-items:center;gap:10px;min-width:0}
+.top .badge{width:30px;height:30px;background:var(--brand)}.top .badge svg{width:22px;height:22px}
+.top .who{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .who b{color:var(--navy);display:block;font-size:13px}
+.iconbtn{border:0;background:#eef2f7;border-radius:9px;padding:8px 12px;font-weight:600;color:#516079;font-size:13px}
+.wrap{max-width:920px;margin:0 auto;padding:16px 14px 90px}
+.pagehead{display:flex;align-items:center;gap:10px;margin:6px 0 14px}
+.back{border:0;background:#eef2f7;border-radius:9px;padding:8px 12px;font-weight:700;color:#516079}
+h2.pt{font-size:20px;margin:0}
+.crumb{font-size:12px;color:var(--muted);margin-bottom:2px}
+/* cards + tiles */
+.card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(10,22,87,.06);border:1px solid #eef1f6;margin-bottom:14px;overflow:hidden}
+.card .hd{padding:14px 16px;font-weight:800;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.card .bd{padding:14px 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.tile{display:block;text-align:left;width:100%;background:#fff;border:1px solid #e9edf4;border-radius:14px;padding:14px}
+.tile:hover{border-color:var(--brand);box-shadow:0 4px 14px rgba(0,0,255,.08)}
+.tile .t{font-weight:800;font-size:16px}
+.tile .m{font-size:12px;color:var(--muted);margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:#eef2ff;color:var(--brand);border:1px solid #d7defc;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+.pill.ok{background:#e6f7ee;color:var(--ok)}.pill.warn{background:#fdf1e0;color:var(--warn)}.pill.none{background:#eef1f6;color:#6b7a90}.pill.info{background:#eef2ff;color:var(--brand)}.pill.danger{background:#fdeaec;color:var(--danger)}
+.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:700;font-size:14px;display:inline-flex;gap:8px;align-items:center}
+.btn-p{background:var(--brand);color:#fff}.btn-p:hover{background:#0000cc}
+.btn-g{background:#fff;color:var(--brand);border:1px solid #cdd7ec}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+/* actions row */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.action{display:flex;flex-direction:column;gap:6px;align-items:center;background:#eef2ff;color:var(--brand);border:0;border-radius:14px;padding:16px;font-weight:700;font-size:13px}
+.action:hover{background:#e2e8ff}
+.action svg{width:24px;height:24px}
+/* metric row */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric .lb{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+.metric .vl{font-size:20px;font-weight:800}
+.metric .vl.bad{color:var(--warn)}
+/* forms */
+.frow{display:grid;grid-template-columns:minmax(150px,42%) 1fr;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.frow:last-child{border-bottom:0}
+.lbl{font-weight:600;font-size:14px}.req{color:var(--danger);margin-left:2px}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;font-family:inherit;font-size:15px;color:var(--navy);background:var(--pink);border:1px solid var(--pinkbrd);border-radius:10px;padding:11px 12px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--brand);background:#fff}
+textarea{min-height:70px;resize:vertical}
+.unit{color:var(--muted);font-size:12px;margin-left:6px}
+.ideal{font-size:11px;color:var(--muted);margin-top:4px}
+.flag{font-size:11px;font-weight:800;margin-top:3px}
+.flag.low,.flag.high{color:var(--warn)}
+.toggle{display:inline-flex;background:#eef1f6;border-radius:11px;padding:4px;gap:4px;flex-wrap:wrap}
+.toggle button{border:0;background:transparent;font-weight:700;font-size:13px;color:#5b6b82;padding:8px 15px;border-radius:8px}
+.toggle button.on{background:var(--navy);color:#fff}
+.options{display:flex;flex-wrap:wrap;gap:7px}
+.options button{border:1px solid #dde4ee;background:#fff;font-weight:600;font-size:13px;color:#33465f;padding:8px 13px;border-radius:10px}
+.options button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.timef{display:flex;align-items:center;gap:6px}.timef input{width:64px;text-align:center}
+.sign,.photo{display:inline-flex;gap:8px;align-items:center;background:var(--navy);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13px}
+.photo{background:#33507e}
+.sigimg{max-width:240px;height:70px;object-fit:contain;background:#fff;border:1px solid var(--pinkbrd);border-radius:10px;padding:4px;display:block;margin-bottom:8px}
+.section{background:var(--navy);color:#fff;text-align:center;font-weight:700;padding:11px;margin:0 -16px 4px}
+.subsection{background:#33507e;color:#fff;text-align:center;font-weight:700;padding:9px;margin:8px -16px 4px}
+.logrow{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.logrow:last-child{border-bottom:0}
+.empty{color:var(--muted);text-align:center;padding:30px;font-size:14px}
+.demo{background:#fff7e6;border:1px solid #ffe3a6;color:#8a5a00;font-size:12px;border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.note-blk{background:#f6f8fc;border:1px solid #e3e9f2;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.55;color:#48566d;margin:8px 0}
+.note-hd{background:var(--navy);color:#fff;text-align:center;font-weight:700;font-size:13px;letter-spacing:.3px;border:0}
+/* signature modal */
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(10,22,87,.5);padding:14px}
+.modal.open{display:flex}
+.mbox{background:#fff;border-radius:18px;width:100%;max-width:640px;overflow:hidden}
+.mhd{padding:15px 18px;font-weight:800;border-bottom:1px solid var(--line)}
+.sigcanvas{width:100%;height:240px;background:#fbfcfe;border:2px dashed #c9d5e6;border-radius:12px;touch-action:none;display:block}
+.mbd{padding:16px 18px}
+.mft{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 18px 18px}
+.mft .r{display:flex;gap:8px}
+.ghost{background:#eef1f6;color:#5b6b82;border:0;border-radius:10px;padding:11px 16px;font-weight:700}
+@media(max-width:560px){.metrics{grid-template-columns:repeat(2,1fr)}.frow{grid-template-columns:1fr;gap:8px}.actions{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- signature modal -->
+<div class="modal" id="sigmodal">
+ <div class="mbox">
+  <div class="mhd">Sign below</div>
+  <div class="mbd"><canvas class="sigcanvas" id="sigcanvas"></canvas></div>
+  <div class="mft"><span style="font-size:13px;color:#64748b">Sign with your finger or Apple Pencil</span>
+   <div class="r"><button class="ghost" id="sigClear">Clear</button><button class="ghost" id="sigCancel">Cancel</button><button class="btn btn-p" id="sigDone">Done</button></div></div>
+ </div>
+</div>
+
+<script>
+const LOGO='<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" fill="#0000FF"/><g stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"><path d="M16 12v22"/><path d="M32 12v22"/><path d="M15 20h18"/><path d="M16 34l-4 4"/><path d="M32 34l4 4"/><path d="M20 12h8v6h-8z" fill="#fff" stroke="none"/></g></svg>';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- Real data: facilities & pools (from HydroApps) ---------------- */
+const FACILITIES = [
+ {f:'Browns Mill', pools:['Activity Pool','Big Pool','River']},
+ {f:'Cove Waterpark', pools:['Activity Pool','Comp Pool','Flow Rider','Lagoon Pool','River','Slide Pool']},
+ {f:'DropZone Waterpark', pools:['Activity Pool','Comp Pool','Flow Rider','River','Slides','Spring Pool','Wet Play (splash pad)']},
+ {f:'Greshman', pools:['Main Pool','Splash Pad']},
+ {f:'Jacobs Aquatic Center', pools:['Competition Pool','Kids Activity Pool','Training Pool']},
+ {f:'Kittredge', pools:['Main Pool','Splash Pad']},
+ {f:'Lithonia', pools:['Main Pool','Splash Pad']},
+ {f:'Lou Walker', pools:['Pool']},
+ {f:'Medlock', pools:['Main Pool','Splash Pad']},
+ {f:'Midway', pools:['Main Pool']},
+ {f:'NH Scott', pools:['Main Pool']},
+ {f:'Tobie Grant', pools:['Main Pool','Splash Pad']},
+];
+
+/* ---------------- Chemical tests (match HydroApps set points) ---------------- */
+const CHEM = [
+ {k:'fac', label:'Free Available Chlorine (FAC)', unit:'ppm', min:2.0, max:4.0, req:true},
+ {k:'cc', label:'Combined Chlorine (C.C.)', unit:'ppm', min:0, max:0.2, req:true},
+ {k:'ph', label:'pH', unit:'', min:7.4, max:7.6, req:true},
+ {k:'ta', label:'Total Alkalinity (TA)', unit:'ppm', min:80, max:120},
+ {k:'ch', label:'Calcium Hardness (CH)', unit:'ppm', min:200, max:400},
+ {k:'cya', label:'Cyanuric Acid (CYA)', unit:'ppm', min:10, max:50},
+ {k:'tds', label:'Total Dissolved Solids (TDS)', unit:'ppm', min:null, max:1500},
+ {k:'salt', label:'Pool Salt (NaCl)', unit:'ppm'},
+ {k:'bromine', label:'Free bromine', unit:'ppm'},
+ {k:'orp', label:'ORP chlorine', unit:'mV'},
+ {k:'temp', label:'Water temperature', unit:'°F'},
+ {k:'flow', label:'Flow meter reading', unit:''},
+ {k:'phctrl', label:'pH on controller', unit:''},
+ {k:'clarity', label:'Water clarity', unit:'', type:'text'},
+ {k:'patrons', label:'Approx patron nos', unit:'', type:'num'},
+ {k:'staff', label:'Staff initials', unit:'', type:'text', req:true},
+];
+function chemFlag(t,v){ if(v===''||v==null||isNaN(+v)) return ''; v=+v; if(t.min!=null&&v<t.min)return 'low'; if(t.max!=null&&v>t.max)return 'high'; return 'ok'; }
+
+/* ---------------- Incident form schema (Illness/injury incident, from HydroApps) ---------------- */
+const INC = [
+ {q:'Training', t:'toggle', req:1, o:['Yes','No']},
+ {q:'Date', t:'date', req:1},
+ {q:'Time', t:'time', req:1},
+ {q:'Name of person involved (person injured/rescued)', t:'text', req:1},
+ {q:'Signature of witness or person involved', t:'sign'},
+ {q:'Address of person involved (person injured/rescued)', t:'text'},
+ {q:'Gender', t:'options', o:['Male','Female','Unknown']},
+ {q:'Date of birth', t:'date'},
+ {q:'Refusal of care?', t:'toggle', req:1, o:['No','Yes']},
+ {q:'Inside or outside?', t:'toggle', o:['Inside','Outside']},
+ {q:'Location', t:'photo'},
+ {q:'Activity', t:'options', o:['Masters','Early bird','Recreational','Rec group','Person in charge','Rental','Swim meet','Water polo game','Swim practice','Swim lessons','Water polo practice','Evening lap swim','Scuba/Kayak','In-service training','Noon swim','Other']},
+ {q:'What type of Incident occurred', t:'options', req:1, key:'incident', o:['Water rescue with first aid incident','Water rescue','First aid incident','Other']},
+ {sub:'Water Rescue', show:'water'},
+ {q:'Quality of water', t:'text', show:'water'},
+ {q:'Depth of rescue', t:'text', show:'water'},
+ {q:'Weather', t:'text', show:'water'},
+ {q:'Type of rescue', t:'options', show:'water', o:['Distressed swimmer','Active victim','Passive on the surface','Passive under water','Passive in deep water']},
+ {sub:'First Aid incident', show:'firstaid'},
+ {q:'Type of incident', t:'text', show:'firstaid'},
+ {q:'Cause of incident', t:'text', photo:1, show:'firstaid'},
+ {q:'What type of first aid was administered?', t:'text', show:'firstaid'},
+ {q:'Was there a suspected spinal injury?', t:'toggle', o:['No','Yes'], show:'firstaid'},
+ {q:'Was the person unconscious at any time?', t:'toggle', o:['No','Yes'], show:'firstaid'},
+ {q:'Was CPR performed?', t:'toggle', o:['No','Yes'], show:'firstaid'},
+ {q:'Was an AED used?', t:'toggle', o:['No','Yes'], show:'firstaid'},
+ {q:'Was Oxygen given?', t:'options', o:['Yes','No','N/A'], show:'firstaid'},
+ {q:'Person released to', t:'options', o:['Self','Parent/guardian','EMS','Other'], show:'firstaid'},
+ {q:'Did this result in fatality?', t:'options', o:['Yes','No','Unknown'], show:'firstaid'},
+ {q:'Signs / Symptoms', t:'textarea', show:'firstaid'},
+ {q:'Names of staff individuals involved', t:'text', show:'firstaid'},
+ {q:'Manager on duty', t:'text', show:'firstaid'},
+ {sub:'Other', show:'other'},
+ {q:'Type of incident', t:'text', show:'other'},
+ {q:'Description of incident', t:'textarea', show:'other'},
+ {q:'Names of staff individuals involved', t:'text', show:'other'},
+ {q:'Completed by', t:'sign'},
+ {q:'What Management Staff was notified', t:'text', req:1},
+];
+
+/* ---------------- Additional trackable forms (from HydroApps) ---------------- */
+const FLOWRIDER = [
+ {sec:'Release of Liability — FlowRider®'},
+ {note:'In consideration of being permitted to use the FlowRider® / sheet-wave attraction operated by StandGuard Aquatics, I (the participant, or the parent/legal guardian of a participant under 18) acknowledge and agree to the following. This is a release of legal rights — please read it carefully before signing.'},
+ {note:'ASSUMPTION OF RISK — Sheet-wave riding involves inherent risks and dangers that cannot be eliminated regardless of instruction, supervision or care, including the risk of serious injury, permanent disability or death. These include falls and collisions on the wet riding surface; contact with the ride surface, equipment or other riders; the actions of other participants; and the condition of the attraction, walkways and common areas. I knowingly and voluntarily assume all such risks, whether foreseeable or not.'},
+ {note:'RELEASE & WAIVER — To the fullest extent permitted by law, I release, waive, discharge and agree not to sue StandGuard Aquatics, the facility and its owner, Wave Loch, Inc. / the FlowRider® manufacturer, and each of their officers, directors, employees, agents and affiliates (the “Released Parties”) from any and all liability, claims or demands for personal injury, property damage or wrongful death arising out of my participation — including claims based on the ordinary or gross negligence of the Released Parties.'},
+ {note:'RULES & FITNESS — I agree to follow all posted rules and staff instructions at all times, to meet all height, weight and ability requirements, and to stop riding immediately if instructed. I confirm the participant is in good health and physically able to participate.'},
+ {note:'INDEMNITY — I agree to indemnify and hold the Released Parties harmless from any claim brought by me or on my behalf, including reasonable attorney fees.'},
+ {q:'Participant full name (printed)', t:'text', req:1, key:'name'},
+ {q:'Date of birth', t:'date', req:1},
+ {q:'Parent / guardian name (required if participant is under 18)', t:'text'},
+ {q:'Phone', t:'text'},
+ {q:'Email', t:'text'},
+ {q:'I consent to photos / video of the participant being used for StandGuard Aquatics marketing (optional)', t:'check'},
+ {q:'I have read and understand this release and agree to its terms', t:'check', req:1},
+ {q:'Signature (participant, or parent / guardian if under 18)', t:'sign', req:1},
+];
+// Facility-level forms. needsPool = only shown where a facility has that pool/ride.
+const FORMS = [
+ {id:'flowrider', title:'Flow Rider Waiver', desc:'Participant release of liability for the flow rider', needsPool:'Flow Rider', kind:'waiver', fields:FLOWRIDER},
+];
+function facForms(f){return FORMS.filter(fm=>!fm.needsPool||poolsOf(f).some(p=>p.toLowerCase().includes(fm.needsPool.toLowerCase())));}
+function facSubs(f){return DB.forms.filter(s=>s.facility===f).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
+
+/* ---------------- Store (live cloud — Supabase) ---------------- */
+const mem={};
+const S={get:k=>{try{return localStorage.getItem(k)}catch(e){return k in mem?mem[k]:null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+const SUPA_URL='https://mjqyeutqhegikidqupbk.supabase.co';
+const SUPA_KEY='sb_publishable_dQP-K5MeCxnq5AcPY25tOw_C-ON29rA';
+const SB=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+let DB={readings:[],incidents:[],forms:[]};
+let cloudOK=true;
+async function refreshDB(){
+  try{
+    const [r,i,fm]=await Promise.all([
+      SB.from('readings').select('data,created_at').order('created_at',{ascending:false}),
+      SB.from('incidents').select('data,created_at').order('created_at',{ascending:false}),
+      SB.from('forms').select('data,created_at').order('created_at',{ascending:false})
+    ]);
+    if(r.error||i.error||fm.error){cloudOK=false;return;}
+    DB.readings=(r.data||[]).map(x=>x.data).filter(Boolean);
+    DB.incidents=(i.data||[]).map(x=>x.data).filter(Boolean);
+    DB.forms=(fm.data||[]).map(x=>x.data).filter(Boolean);
+    cloudOK=true;
+  }catch(e){cloudOK=false;}
+}
+async function cloudInsert(table,facility,rec){
+  try{
+    const {error}=await SB.from(table).insert({facility,data:rec});
+    if(error){alert('Could not save to the cloud: '+error.message+'\nCheck the connection and try again.');return false;}
+    return true;
+  }catch(e){alert('Could not save to the cloud. Check the connection and try again.');return false;}
+}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-')}
+function uid(p){return p+'_'+Math.random().toString(36).slice(2,9)}
+function fmt(iso){const d=new Date(iso); if(isNaN(d))return '—'; return d.toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}
+function nowLocal(){const d=new Date();const o=d.getTimezoneOffset();return new Date(d-o*60000).toISOString().slice(0,16);}
+
+/* ---------------- Auth (accounts: one per facility + admin) ---------------- */
+// 4-digit PINs — one per facility + an admin PIN. Edit these to your real codes.
+const PINS={admin:'4321','Browns Mill':'1010','Cove Waterpark':'2020','DropZone Waterpark':'3030','Greshman':'4040','Jacobs Aquatic Center':'5050','Kittredge':'6060','Lithonia':'7070','Lou Walker':'8080','Medlock':'1212','Midway':'1313','NH Scott':'1414','Tobie Grant':'1515'};
+const ACCOUNTS=[{id:'admin',name:'StandGuard Corporate',role:'admin',sub:'CEO / owner — sees all facilities',pin:PINS.admin}]
+ .concat(FACILITIES.map(f=>({id:'fac_'+slug(f.f),name:f.f,role:'facility',facility:f.f,sub:'Facility account',pin:PINS[f.f]})));
+let session=null;
+try{const s=S.get('sga:session'); if(s) session=ACCOUNTS.find(a=>a.id===s)||null;}catch(e){}
+async function login(a){session=a;S.set('sga:session',a.id);render();await refreshDB();render();}
+function logout(){session=null;S.set('sga:session','');state={};render();}
+
+/* ---------------- App state ---------------- */
+let state={};
+const app=document.getElementById('app');
+function go(s){state=Object.assign({},state,s);window.scrollTo(0,0);render();}
+
+function render(){
+ if(!session){renderLogin();return;}
+ if(session.role==='admin') renderAdmin();
+ else renderFacility();
+}
+
+/* ---------- Login (PIN pad) ---------- */
+let pinBuf='', pinErr=false;
+function pinKey(d){ if(pinBuf.length>=4) return; pinBuf+=d; pinErr=false; if(pinBuf.length===4){ tryPin(); } else renderLogin(); }
+function pinBack(){ pinBuf=pinBuf.slice(0,-1); pinErr=false; renderLogin(); }
+function tryPin(){ const a=ACCOUNTS.find(x=>x.pin===pinBuf); if(a){ pinBuf=''; pinErr=false; login(a); } else { pinErr=true; pinBuf=''; renderLogin(); } }
+function renderLogin(){
+ const dots=[0,1,2,3].map(i=>`<span class="dot ${i<pinBuf.length?'on':''}"></span>`).join('');
+ app.innerHTML=`<div class="login">
+  <div class="hero" style="padding:26px 22px 22px"><div class="brand"><span class="badge">${LOGO}</span> STANDGUARD AQUATICS</div>
+   <h1 style="margin-top:12px">Facility Operations</h1>
+   <div class="sub">Enter your facility PIN. Corporate/admin uses the admin PIN.</div></div>
+  <div class="pinwrap">
+   <div class="pinprompt">Enter your 4-digit PIN</div>
+   <div class="dots ${pinErr?'shake':''}">${dots}</div>
+   <div class="pinerr">${pinErr?'Incorrect PIN — try again':''}</div>
+   <div class="keypad">
+    ${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pinKey('${n}')">${n}</button>`).join('')}
+    <button class="kp-blank" tabindex="-1"></button>
+    <button onclick="pinKey('0')">0</button>
+    <button class="kp-del" onclick="pinBack()">⌫</button>
+   </div>
+  </div></div>`;
+}
+
+/* ---------- shared top bar ---------- */
+function topbar(){
+ return `<div class="top"><div class="l"><span class="badge">${LOGO}</span>
+   <div class="who"><b>${esc(session.name)}</b>${session.role==='admin'?'Corporate — all facilities':'Facility account'}</div></div>
+   <button class="iconbtn" onclick="logout()">Sign out</button></div>`;
+}
+function poolsOf(f){const x=FACILITIES.find(y=>y.f===f);return x?x.pools:[];}
+function poolReadings(f,p){return DB.readings.filter(r=>r.facility===f&&r.pool===p).sort((a,b)=>b.takenAt.localeCompare(a.takenAt));}
+function poolIncidents(f,p){return DB.incidents.filter(r=>r.facility===f&&r.pool===p).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
+function facReadings(f){return DB.readings.filter(r=>r.facility===f);}
+function latestReading(f,p){return poolReadings(f,p)[0]||null;}
+function chemStatus(r){if(!r)return 'none';for(const t of CHEM){const fl=chemFlag(t,r.vals[t.k]);if(fl==='low'||fl==='high')return 'warn';}return 'ok';}
+
+/* ---------- Facility view ---------- */
+function renderFacility(){
+ const f=session.facility;
+ if(state.view==='pool'){renderPool(f,state.pool,'facility');return;}
+ if(state.view==='fillForm'){renderFillForm(f,state.formId,'facility');return;}
+ if(state.view==='incidentPick'){renderIncidentPick(f);return;}
+ const pools=poolsOf(f);
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="demo">${cloudOK?'☁️ Live — everything you save syncs to the cloud and Corporate sees it in real time.':'⚠️ Can\'t reach the cloud right now. Check your internet — new entries won\'t save until it\'s back.'} <a href="#" onclick="manualRefresh();return false;" style="color:#0000FF;font-weight:700;text-decoration:none">↻ Refresh</a></div>
+  <div class="crumb">Facility</div><h2 class="pt" style="margin-bottom:12px">${esc(f)}</h2>
+  <div class="card"><div class="hd">Pools <span class="pill info">${pools.length}</span></div><div class="bd">
+   <div class="grid">${pools.map(p=>poolTile(f,p)).join('')}</div></div></div>
+  ${incidentsCard(f,'facility')}
+  ${formsCard(f,'facility')}
+ </div></div>`;
+}
+function facIncidents(f){return DB.incidents.filter(r=>r.facility===f).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
+function incidentsCard(f,ctx){
+ const incs=facIncidents(f);
+ return `<div class="card"><div class="hd">Incident reports <span class="pill info">${incs.length}</span></div><div class="bd">
+   ${ctx==='facility'?`<div class="btnrow" style="margin-bottom:14px"><button class="btn btn-p" onclick="go({view:'incidentPick'})">${IC.alert} New incident report</button></div>`:''}
+   ${incs.length?incs.map(i=>`<div class="logrow"><div><b style="font-size:14px">${esc(i.type||'Incident')}</b>
+     <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(i.pool)} · ${fmt(i.createdAt)}${i.person?(' · '+esc(i.person)):''}</div></div>
+     <span class="pill danger">Report</span></div>`).join(''):'<div class="empty">No incidents logged — a good thing.</div>'}
+ </div></div>`;
+}
+function renderIncidentPick(f){
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="go({view:null})">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · New incident report</div><h2 class="pt">Which pool is this for?</h2></div></div>
+  <div class="card"><div class="bd"><div class="grid">
+   ${poolsOf(f).map(p=>`<button class="tile" onclick='go({view:"pool",pool:${JSON.stringify(p)},sub:"incident"})'><div class="t">${esc(p)}</div><div class="m">Report an incident at this pool</div></button>`).join('')}
+  </div></div></div></div></div>`;
+}
+function formsCard(f,ctx){
+ const forms=facForms(f); const subs=facSubs(f);
+ if(!forms.length && !subs.length) return '';
+ return `<div class="card"><div class="hd">Forms <span class="pill info">${subs.length}</span></div><div class="bd">
+   ${ctx==='facility'&&forms.length?`<div style="font-size:12px;color:#64748b;margin-bottom:8px">Available forms</div>
+     <div class="btnrow" style="margin-bottom:14px">${forms.map(fm=>`<button class="btn btn-g" onclick='go({view:"fillForm",formId:"${fm.id}"})'>${IC.doc} ${esc(fm.title)}</button>`).join('')}</div>`:''}
+   <div style="font-size:12px;color:#64748b;margin-bottom:6px">Submitted forms</div>
+   ${subs.length?subs.map(s=>`<div class="logrow"><div><b style="font-size:14px">${esc(s.summary||s.title)}</b>
+     <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(s.summary?s.title+' · ':'')}${fmt(s.createdAt)} · ${esc(s.by||'')}</div></div>
+     ${s.kind==='waiver'?'<span class="pill ok">Signed</span>':`<span class="pill ${s.flags?'warn':'ok'}">${s.flags?(s.flags+' issue'+(s.flags>1?'s':'')):'Complete'}</span>`}</div>`).join(''):'<div class="empty">No forms submitted yet.</div>'}
+ </div></div>`;
+}
+/* generic form fill */
+let curForm={};
+function renderFillForm(f,formId,ctx){
+ const form=FORMS.find(x=>x.id===formId); if(!form){go({view:null});return;}
+ curForm={vals:{},meta:[],keyMap:{},flags:0,kind:form.kind};
+ const back=ctx==='facility'?`go({view:null,formId:null})`:`go({view:'adminFacility'})`;
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)}</div><h2 class="pt">${esc(form.title)}</h2></div></div>
+  <div class="card"><div class="bd"><div id="fform"></div>
+   <div class="btnrow" style="margin-top:16px"><button class="btn btn-g" onclick="${back}">Cancel</button>
+    <button class="btn btn-p" onclick="saveForm('${esc(f)}','${form.id}')">Submit form</button></div>
+  </div></div></div></div>`;
+ const root=document.getElementById('fform'); let i=0;
+ form.fields.forEach(fd=>{
+  if(fd.sec){const s=document.createElement('div');s.className='subsection';s.textContent=fd.sec;root.appendChild(s);return;}
+  if(fd.note){const n=document.createElement('div');n.className='note-blk'+(/^[A-Z ,&—-]+$/.test(fd.note)&&fd.note.length<80?' note-hd':'');n.textContent=fd.note;root.appendChild(n);return;}
+  const id='g_'+i;
+  const row=document.createElement('div');row.className='frow';
+  const lab=document.createElement('div');lab.className='lbl';lab.innerHTML=esc(fd.q)+(fd.req?'<span class="req">*</span>':'');
+  row.appendChild(lab);row.appendChild(gControl(fd,i));root.appendChild(row);
+  curForm.meta.push({id,fd}); if(fd.key)curForm.keyMap[fd.key]=id;
+  i++;
+ });
+}
+function gControl(fd,i){
+ const w=document.createElement('div');const id='g_'+i;curForm.vals[id]=null;
+ if(fd.t==='yn'){w.innerHTML=`<div class="toggle"><button type="button">No</button><button type="button">Yes</button></div>`;
+   w.querySelectorAll('button').forEach(b=>b.onclick=()=>{w.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');curForm.vals[id]=b.textContent;});}
+ else if(fd.t==='toggle'||fd.t==='options'){w.innerHTML=`<div class="${fd.t==='toggle'?'toggle':'options'}">${fd.o.map(o=>`<button type="button">${esc(o)}</button>`).join('')}</div>`;
+   w.querySelectorAll('button').forEach(b=>b.onclick=()=>{w.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');curForm.vals[id]=b.textContent;});}
+ else if(fd.t==='text'){w.innerHTML=`<input type="text" data-g="${id}">`;}
+ else if(fd.t==='textarea'){w.innerHTML=`<textarea data-g="${id}"></textarea>`;}
+ else if(fd.t==='date'){w.innerHTML=`<input type="date" data-g="${id}">`;}
+ else if(fd.t==='sign'){w.innerHTML=`<img class="sigimg hidden"><button type="button" class="sign">✍️ Sign here</button>`;
+   const img=w.querySelector('.sigimg'),btn=w.querySelector('.sign');btn.onclick=()=>openSig(d=>{img.src=d;img.classList.remove('hidden');btn.textContent='✍️ Re-sign';curForm.vals[id]=d;});}
+ else if(fd.t==='check'){w.innerHTML=`<label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" style="width:22px;height:22px;accent-color:#0000FF"><span style="font-size:14px;font-weight:600;color:#33465f">Yes, I agree</span></label>`;
+   const cb=w.querySelector('input');cb.onchange=()=>{curForm.vals[id]=cb.checked;};}
+ if(fd.comment){const c=document.createElement('textarea');c.placeholder='Comment (optional)';c.style.marginTop='8px';c.dataset.g=id+'_c';w.appendChild(c);}
+ if(fd.photo){const pb=document.createElement('button');pb.type='button';pb.className='photo';pb.style.marginTop='8px';pb.textContent='📷 Add photo';w.appendChild(pb);}
+ return w;
+}
+async function saveForm(f,formId){
+ const form=FORMS.find(x=>x.id===formId);
+ document.querySelectorAll('[data-g]').forEach(el=>{curForm.vals[el.dataset.g]=el.value.trim();});
+ const missing=[];
+ curForm.meta.forEach(m=>{ if(!m.fd.req) return; const v=curForm.vals[m.id];
+   const ok = m.fd.t==='check' ? v===true : (v!=null && v!=='');
+   if(!ok) missing.push(m.fd.q.replace(/\s*\(.*\)/,''));
+ });
+ if(missing.length){ alert('Please complete: '+missing.slice(0,4).join('; ')+(missing.length>4?'…':'')); return; }
+ let flags=0; if(!curForm.kind) Object.values(curForm.vals).forEach(v=>{if(v==='No')flags++;});
+ const summary = curForm.keyMap.name ? (curForm.vals[curForm.keyMap.name]||'') : '';
+ const rec={id:uid('f'),facility:f,formId,title:form.title,kind:form.kind,summary,vals:curForm.vals,flags,by:session.name,createdAt:new Date().toISOString()};
+ const ok=await cloudInsert('forms',f,rec); if(!ok) return;
+ await refreshDB(); go({view:null,formId:null});
+}
+function poolTile(f,p){
+ const r=latestReading(f,p); const st=chemStatus(r);
+ const inc=poolIncidents(f,p).length;
+ const pill=st==='ok'?'<span class="pill ok">Chem OK</span>':st==='warn'?'<span class="pill warn">Check chem</span>':'<span class="pill none">No reading</span>';
+ return `<button class="tile" onclick='go({view:"pool",pool:${JSON.stringify(p)}})'>
+   <div class="t">${esc(p)}</div>
+   <div class="m">${r?('Last reading '+fmt(r.takenAt)):'No readings yet'}${inc?(' · '+inc+' incident'+(inc>1?'s':'')):''}</div>
+   <div class="chips">${pill}</div></button>`;
+}
+
+/* ---------- Pool detail (log + history) ---------- */
+function renderPool(f,p,ctx){
+ if(state.sub==='reading'){renderReadingForm(f,p,ctx);return;}
+ if(state.sub==='incident'){renderIncidentForm(f,p,ctx);return;}
+ const readings=poolReadings(f,p); const incs=poolIncidents(f,p); const r=readings[0];
+ const back=ctx==='admin'?`go({view:'adminFacility'})`:`go({view:'home',pool:null})`;
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)}</div><h2 class="pt">${esc(p)}</h2></div></div>
+  ${ctx==='facility'?`<div class="actions" style="grid-template-columns:1fr">
+    <button class="action" onclick="go({sub:'reading'})">${IC.flask} Log chemical reading</button></div>`:''}
+  <div class="card"><div class="hd">Water chemistry ${r?(chemStatus(r)==='ok'?'<span class="pill ok">All in range</span>':'<span class="pill warn">Needs attention</span>'):'<span class="pill none">No data</span>'}</div>
+   <div class="bd">${r?readingMetrics(r):'<div class="empty">No chemical readings logged yet.</div>'}</div></div>
+  <div class="card"><div class="hd">Reading history <span class="pill info">${readings.length}</span></div><div class="bd">
+   ${readings.length?readings.map(rd=>readingRow(rd)).join(''):'<div class="empty">No readings.</div>'}</div></div>
+ </div></div>`;
+}
+function readingMetrics(r){
+ const main=[['fac','Chlorine'],['cc','Comb. Cl'],['ph','pH'],['temp','Temp']];
+ return `<div class="metrics">${main.map(([k,lab])=>{const t=CHEM.find(c=>c.k===k);const v=r.vals[k];const fl=chemFlag(t,v);
+   return `<div class="metric"><div class="lb">${lab}</div>
+    <div class="vl ${fl==='low'||fl==='high'?'bad':''}">${v===''||v==null?'—':esc(v)}<span class="unit">${esc(t.unit)}</span></div>
+    ${fl==='low'?'<div class="flag low">Low</div>':fl==='high'?'<div class="flag high">High</div>':''}</div>`;}).join('')}</div>
+  <div style="margin-top:12px;font-size:12px;color:#64748b">Logged ${fmt(r.takenAt)} · ${esc(r.vals.staff||'—')}</div>`;
+}
+function readingRow(r){
+ const st=chemStatus(r);
+ return `<div class="logrow"><div><b style="font-size:14px">${fmt(r.takenAt)}</b>
+   <div style="font-size:12px;color:#64748b;margin-top:2px">FAC ${esc(r.vals.fac||'—')} · CC ${esc(r.vals.cc||'—')} · pH ${esc(r.vals.ph||'—')} · ${esc(r.vals.staff||'')}</div></div>
+   ${st==='ok'?'<span class="pill ok">In range</span>':'<span class="pill warn">Out of range</span>'}</div>`;
+}
+function incidentRow(i){
+ return `<div class="logrow"><div><b style="font-size:14px">${esc(i.type||'Incident')}</b>
+   <div style="font-size:12px;color:#64748b;margin-top:2px">${fmt(i.createdAt)} · ${esc(i.person||'—')}</div></div>
+   <span class="pill danger">Report</span></div>`;
+}
+
+/* ---------- Chemical reading form ---------- */
+function renderReadingForm(f,p,ctx){
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="go({sub:null})">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · ${esc(p)}</div><h2 class="pt">Log chemical reading</h2></div></div>
+  <div class="card"><div class="bd">
+   <div class="frow"><div class="lbl">Date &amp; time<span class="req">*</span></div><div><input type="datetime-local" id="c_takenAt" value="${nowLocal()}"></div></div>
+   ${CHEM.map(t=>chemField(t)).join('')}
+   <div class="btnrow" style="margin-top:16px"><button class="btn btn-g" onclick="go({sub:null})">Cancel</button>
+    <button class="btn btn-p" onclick="saveReading('${esc(f)}','${esc(p)}')">Save reading</button></div>
+  </div></div></div></div>`;
+ CHEM.forEach(t=>{const el=document.getElementById('c_'+t.k); if(el&&t.type!=='text') el.addEventListener('input',()=>updFlag(t));});
+}
+function chemField(t){
+ const isText=t.type==='text'; const ideal=(t.min!=null||t.max!=null)?`Ideal ${t.min!=null?t.min:''}${(t.min!=null&&t.max!=null)?'–':''}${t.max!=null?t.max:''} ${t.unit}`:'';
+ return `<div class="frow"><div class="lbl">${esc(t.label)}${t.req?'<span class="req">*</span>':''} ${t.unit?`<span class="unit">(${esc(t.unit)})</span>`:''}</div>
+  <div><input type="${isText?'text':'number'}" step="0.1" inputmode="${isText?'text':'decimal'}" id="c_${t.k}">
+   ${ideal?`<div class="ideal">${ideal}</div>`:''}<div class="flag" id="fl_${t.k}"></div></div></div>`;
+}
+function updFlag(t){const v=document.getElementById('c_'+t.k).value;const fl=chemFlag(t,v);const el=document.getElementById('fl_'+t.k);
+ el.className='flag '+(fl||''); el.textContent=fl==='low'?'Below ideal':fl==='high'?'Above ideal':'';}
+async function saveReading(f,p){
+ const vals={}; CHEM.forEach(t=>{vals[t.k]=document.getElementById('c_'+t.k).value.trim();});
+ if(vals.fac===''||vals.ph===''||!vals.staff){alert('FAC, pH and staff initials are required.');return;}
+ const at=document.getElementById('c_takenAt').value;
+ const rec={id:uid('r'),facility:f,pool:p,takenAt:new Date(at).toISOString(),vals,createdAt:new Date().toISOString()};
+ const ok=await cloudInsert('readings',f,rec); if(!ok) return;
+ await refreshDB(); go({sub:null});
+}
+
+/* ---------- Incident form ---------- */
+let incState={};
+function renderIncidentForm(f,p,ctx){
+ incState={sigs:{}};
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="go({sub:null})">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · ${esc(p)}</div><h2 class="pt">Incident report</h2></div></div>
+  <div class="card"><div class="bd"><div class="section">Illness and injury incident</div><div id="incform"></div>
+   <div class="btnrow" style="margin-top:16px"><button class="btn btn-g" onclick="go({sub:null})">Cancel</button>
+    <button class="btn btn-p" onclick="saveIncident('${esc(f)}','${esc(p)}')">File report</button></div>
+  </div></div></div></div>`;
+ const root=document.getElementById('incform'); let i=0;
+ INC.forEach(fd=>{
+  if(fd.sub){const s=document.createElement('div');s.className='subsection hidden';s.textContent=fd.sub;s.dataset.show=fd.show;root.appendChild(s);return;}
+  const row=document.createElement('div');row.className='frow'+(fd.show?' hidden':'');if(fd.show)row.dataset.show=fd.show;
+  const lab=document.createElement('div');lab.className='lbl';lab.innerHTML=esc(fd.q)+(fd.req?'<span class="req">*</span>':'')+(fd.photo?' 📷':'');
+  row.appendChild(lab);row.appendChild(incControl(fd,i));root.appendChild(row);i++;
+ });
+}
+function incControl(fd,i){
+ const w=document.createElement('div');const id='i_'+i;incState[id]=null;
+ if(fd.t==='text'){w.innerHTML=`<input type="text" data-k="${id}">`;}
+ else if(fd.t==='textarea'){w.innerHTML=`<textarea data-k="${id}"></textarea>`;}
+ else if(fd.t==='date'){w.innerHTML=`<input type="date" data-k="${id}">`;}
+ else if(fd.t==='time'){w.innerHTML=`<div class="timef"><input type="text" placeholder="HH" data-k="${id}_h"> : <input type="text" placeholder="MM" data-k="${id}_m"><div class="toggle"><button type="button" class="on">AM</button><button type="button">PM</button></div></div>`;tog(w);}
+ else if(fd.t==='toggle'){w.innerHTML=`<div class="toggle">${fd.o.map(o=>`<button type="button">${esc(o)}</button>`).join('')}</div>`;tog(w,fd,id);}
+ else if(fd.t==='options'){w.innerHTML=`<div class="options">${fd.o.map(o=>`<button type="button">${esc(o)}</button>`).join('')}</div>`;
+   w.querySelectorAll('button').forEach(b=>b.onclick=()=>{w.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');incState[id]=b.textContent;if(fd.key==='incident')incReveal(b.textContent);});}
+ else if(fd.t==='sign'){w.innerHTML=`<img class="sigimg hidden"><button type="button" class="sign">✍️ Sign here</button>`;
+   const img=w.querySelector('.sigimg'),btn=w.querySelector('.sign');btn.onclick=()=>openSig(d=>{img.src=d;img.classList.remove('hidden');btn.textContent='✍️ Re-sign';incState[id]=d;});}
+ else if(fd.t==='photo'){w.innerHTML=`<button type="button" class="photo">📷 Take photo</button>`;}
+ return w;
+}
+function tog(w,fd,id){w.querySelectorAll('.toggle').forEach(tg=>tg.querySelectorAll('button').forEach(b=>b.onclick=()=>{tg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(fd&&id)incState[id]=b.textContent;}));}
+function incReveal(val){const water=/water rescue/i.test(val),fa=/first aid/i.test(val),other=/^other$/i.test(val);
+ document.querySelectorAll('[data-show]').forEach(el=>{const g=el.dataset.show;el.classList.toggle('hidden',!((g==='water'&&water)||(g==='firstaid'&&fa)||(g==='other'&&other)));});}
+async function saveIncident(f,p){
+ const g=k=>{const el=document.querySelector('[data-k="'+k+'"]');return el?el.value.trim():'';};
+ const type=incState['i_12']||''; const person=g('i_3');
+ const rec={id:uid('i'),facility:f,pool:p,type:type||'Incident',person,createdAt:new Date().toISOString(),data:Object.assign({},incState)};
+ const ok=await cloudInsert('incidents',f,rec); if(!ok) return;
+ await refreshDB(); go({sub:null});
+}
+
+/* ---------- Admin (CEO) ---------- */
+function renderAdmin(){
+ if(state.view==='adminFacility'&&state.facility){ if(state.pool){renderPool(state.facility,state.pool,'admin');return;} renderAdminFacility(state.facility); return; }
+ if(state.view==='pool'&&state.facility&&state.pool){renderPool(state.facility,state.pool,'admin');return;}
+ const totalPools=FACILITIES.reduce((n,f)=>n+f.pools.length,0);
+ const readings=DB.readings.length, incs=DB.incidents.length;
+ // pools needing attention
+ let warn=0; FACILITIES.forEach(f=>f.pools.forEach(p=>{if(chemStatus(latestReading(f.f,p))==='warn')warn++;}));
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="demo">${cloudOK?'☁️ Live — pulling data from every facility in real time.':'⚠️ Can\'t reach the cloud right now. Check your internet.'} <a href="#" onclick="manualRefresh();return false;" style="color:#0000FF;font-weight:700;text-decoration:none">↻ Refresh</a></div>
+  <div class="crumb">Corporate dashboard</div><h2 class="pt" style="margin-bottom:12px">All facilities</h2>
+  <div class="card"><div class="bd"><div class="metrics">
+   <div class="metric"><div class="lb">Facilities</div><div class="vl">${FACILITIES.length}</div></div>
+   <div class="metric"><div class="lb">Pools</div><div class="vl">${totalPools}</div></div>
+   <div class="metric"><div class="lb">Readings</div><div class="vl">${readings}</div></div>
+   <div class="metric"><div class="lb">Chem alerts</div><div class="vl ${warn?'bad':''}">${warn}</div></div>
+  </div></div></div>
+  <div class="grid">${FACILITIES.map(f=>adminFacTile(f)).join('')}</div>
+ </div></div>`;
+}
+function adminFacTile(f){
+ let warn=0,rc=0,ic=0; f.pools.forEach(p=>{if(chemStatus(latestReading(f.f,p))==='warn')warn++;rc+=poolReadings(f.f,p).length;ic+=poolIncidents(f.f,p).length;});
+ return `<button class="tile" onclick='go({view:"adminFacility",facility:${JSON.stringify(f.f)},pool:null})'>
+   <div class="t">${esc(f.f)}</div>
+   <div class="m">${f.pools.length} pools · ${rc} readings · ${ic} incidents</div>
+   <div class="chips">${warn?`<span class="pill warn">${warn} pool${warn>1?'s':''} to check</span>`:'<span class="pill ok">All in range</span>'}</div></button>`;
+}
+function renderAdminFacility(f){
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="go({view:null,facility:null})">‹ All facilities</button>
+   <div><div class="crumb">Facility</div><h2 class="pt">${esc(f)}</h2></div></div>
+  <div class="card"><div class="hd">Pools <span class="pill info">${poolsOf(f).length}</span></div><div class="bd">
+   <div class="grid">${poolsOf(f).map(p=>adminPoolTile(f,p)).join('')}</div></div></div>
+  ${incidentsCard(f,'admin')}
+  ${formsCard(f,'admin')}
+ </div></div>`;
+}
+function adminPoolTile(f,p){
+ const r=latestReading(f,p);const st=chemStatus(r);const inc=poolIncidents(f,p).length;
+ const pill=st==='ok'?'<span class="pill ok">Chem OK</span>':st==='warn'?'<span class="pill warn">Check chem</span>':'<span class="pill none">No reading</span>';
+ return `<button class="tile" onclick='go({view:"adminFacility",facility:${JSON.stringify(f)},pool:${JSON.stringify(p)}})'>
+   <div class="t">${esc(p)}</div><div class="m">${r?('Last '+fmt(r.takenAt)):'No readings'}${inc?(' · '+inc+' incident'+(inc>1?'s':'')):''}</div>
+   <div class="chips">${pill}</div></button>`;
+}
+
+/* ---------- icons ---------- */
+const IC={flask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.2 8.3A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.5 15h9"/></svg>',
+ alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
+ doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>'};
+
+/* ---------- signature pad ---------- */
+(function(){const modal=document.getElementById('sigmodal'),canvas=document.getElementById('sigcanvas'),ctx=canvas.getContext('2d');
+ let draw=false,last=null,dirty=false,cb=null;
+ function fit(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=2.6;ctx.strokeStyle='#12294d';}
+ function pos(e){const r=canvas.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
+ function st(e){e.preventDefault();draw=true;dirty=true;last=pos(e);}
+ function mv(e){if(!draw)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;}
+ function en(){draw=false;}
+ canvas.addEventListener('pointerdown',st);canvas.addEventListener('pointermove',mv);window.addEventListener('pointerup',en);
+ canvas.addEventListener('touchstart',st,{passive:false});canvas.addEventListener('touchmove',mv,{passive:false});canvas.addEventListener('touchend',en);
+ function clr(){ctx.clearRect(0,0,canvas.width,canvas.height);dirty=false;}
+ document.getElementById('sigClear').onclick=clr;
+ document.getElementById('sigCancel').onclick=()=>modal.classList.remove('open');
+ document.getElementById('sigDone').onclick=()=>{const d=dirty?canvas.toDataURL('image/png'):null;modal.classList.remove('open');if(cb&&d)cb(d);};
+ window.openSig=function(fn){cb=fn;modal.classList.add('open');requestAnimationFrame(()=>{fit();clr();});};
+ window.addEventListener('resize',()=>{if(modal.classList.contains('open'))fit();});
+})();
+
+async function manualRefresh(){ await refreshDB(); render(); }
+(async()=>{
+  render();
+  if(session){ await refreshDB(); render(); }
+  setInterval(async()=>{
+    if(session && !state.sub && state.view!=='fillForm'){
+      await refreshDB(); render();
+    }
+  },20000);
+})();
+</script>
+</body>
+</html>
