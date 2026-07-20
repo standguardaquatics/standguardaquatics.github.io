@@ -111,6 +111,9 @@ textarea{min-height:70px;resize:vertical}
 .logrow{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 .logrow:last-child{border-bottom:0}
 .empty{color:var(--muted);text-align:center;padding:30px;font-size:14px}
+.waivblock{padding:12px 0;border-bottom:1px solid var(--line)}
+.waivblock:last-child{border-bottom:0}
+.waivtitle{font-weight:700;color:var(--navy);font-size:15px;margin-bottom:8px}
 .demo{background:#fff7e6;border:1px solid #ffe3a6;color:#8a5a00;font-size:12px;border-radius:10px;padding:8px 12px;margin-bottom:12px}
 .note-blk{background:#f6f8fc;border:1px solid #e3e9f2;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.55;color:#48566d;margin:8px 0}
 .note-hd{background:var(--navy);color:#fff;text-align:center;font-weight:700;font-size:13px;letter-spacing:.3px;border:0}
@@ -242,8 +245,8 @@ const FLOWRIDER = [
 ];
 // Facility-level forms. needsPool = only shown where a facility has that pool/ride.
 const FORMS = [
- {id:'flowrider', title:'Flow Rider Waiver', desc:'FlowRider release of liability', kind:'waiver', facilities:['DropZone Waterpark','Cove Waterpark'], url:'https://waiver.smartwaiver.com/w/5r6bwgcafbwci6hzwuvjfy/web/'},
- {id:'scuba', title:'Scuba Waiver', desc:'Scuba release of liability', kind:'waiver', facilities:['Jacobs Aquatic Center'], url:'https://waiver.smartwaiver.com/w/7dkglbbdfzidmb3s7krdwc/web/'},
+ {id:'flowrider', title:'Flow Rider Waiver', desc:'FlowRider release of liability', kind:'waiver', facilities:['DropZone Waterpark','Cove Waterpark'], templateId:'5r6bwgcafbwci6hzwuvjfy', url:'https://waiver.smartwaiver.com/w/5r6bwgcafbwci6hzwuvjfy/web/'},
+ {id:'scuba', title:'Scuba Waiver', desc:'Scuba release of liability', kind:'waiver', facilities:['Jacobs Aquatic Center'], templateId:'7dkglbbdfzidmb3s7krdwc', url:'https://waiver.smartwaiver.com/w/7dkglbbdfzidmb3s7krdwc/web/'},
 ];
 function facForms(f){return FORMS.filter(fm=>!fm.facilities||fm.facilities.includes(f));}
 function facSubs(f){return DB.forms.filter(s=>s.facility===f).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
@@ -296,6 +299,7 @@ function logout(){session=null;S.set('sga:session','');state={};render();}
 let state={};
 const app=document.getElementById('app');
 function go(s){state=Object.assign({},state,s);window.scrollTo(0,0);render();}
+function goMenu(){ if(session&&session.role==='admin') go({view:null,facility:null,pool:null,incId:null,formId:null,sub:null}); else go({view:null,pool:null,incId:null,formId:null,sub:null}); }
 
 function render(){
  if(!session){renderLogin();return;}
@@ -346,6 +350,8 @@ function renderFacility(){
  if(state.view==='pool'){renderPool(f,state.pool,'facility');return;}
  if(state.view==='fillForm'){renderFillForm(f,state.formId,'facility');return;}
  if(state.view==='waiver'){renderWaiver(f,state.formId);return;}
+ if(state.view==='waiverLog'){renderWaiverLog(f,state.formId);return;}
+ if(state.view==='incidentView'){renderIncidentView(f,state.incId);return;}
  if(state.view==='incidentPick'){renderIncidentPick(f);return;}
  const pools=poolsOf(f);
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
@@ -362,9 +368,9 @@ function incidentsCard(f,ctx){
  const incs=facIncidents(f);
  return `<div class="card"><div class="hd">Incident reports <span class="pill info">${incs.length}</span></div><div class="bd">
    ${ctx==='facility'?`<div class="btnrow" style="margin-bottom:14px"><button class="btn btn-p" onclick="go({view:'incidentPick'})">${IC.alert} New incident report</button></div>`:''}
-   ${incs.length?incs.map(i=>`<div class="logrow"><div><b style="font-size:14px">${esc(i.type||'Incident')}</b>
+   ${incs.length?incs.map(i=>`<div class="logrow" style="cursor:pointer" onclick='go({view:"incidentView",incId:${JSON.stringify(i.id)}})'><div><b style="font-size:14px">${esc(i.type||'Incident')}</b>
      <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(i.pool)} · ${fmt(i.createdAt)}${i.person?(' · '+esc(i.person)):''}</div></div>
-     <span class="pill danger">Report</span></div>`).join(''):'<div class="empty">No incidents logged — a good thing.</div>'}
+     <span class="pill danger">View ›</span></div>`).join(''):'<div class="empty">No incidents logged — a good thing.</div>'}
  </div></div>`;
 }
 function renderIncidentPick(f){
@@ -375,13 +381,85 @@ function renderIncidentPick(f){
    ${poolsOf(f).map(p=>`<button class="tile" onclick='go({view:"pool",pool:${JSON.stringify(p)},sub:"incident"})'><div class="t">${esc(p)}</div><div class="m">Report an incident at this pool</div></button>`).join('')}
   </div></div></div></div></div>`;
 }
+function incByIndex(){ let i=0; const map=[]; INC.forEach(fd=>{ if(fd.sub){map.push({sub:fd});return;} map.push({fd,idx:i}); i++; }); return map; }
+function renderIncidentView(f,incId){
+ const inc=DB.incidents.find(x=>x.id===incId);
+ if(!inc){goMenu();return;}
+ const d=inc.data||{};
+ const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,incId:null})`;
+ const rows=[];
+ incByIndex().forEach(m=>{
+  if(m.sub){ rows.push(`<div class="section" style="margin-top:16px">${esc(m.sub.sub)}</div>`); return; }
+  const fd=m.fd; let v;
+  if(fd.t==='time'){ const h=d['i_'+m.idx+'_h'],mm=d['i_'+m.idx+'_m']; v=(h||mm)?((h||'')+':'+(mm||'')):''; }
+  else v=d['i_'+m.idx];
+  if(v==null||v===''||v===false) return;
+  if(fd.t==='sign'&&typeof v==='string'&&v.indexOf('data:image')===0){
+   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div><img src="${v}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`);
+  } else {
+   rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div style="font-weight:700;color:#12294d">${esc(String(v))}</div></div>`);
+  }
+ });
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)}${inc.pool?(' · '+esc(inc.pool)):''}</div><h2 class="pt">${esc(inc.type||'Incident report')}</h2></div></div>
+  <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button></div>
+  <div class="card"><div class="bd">
+   <div style="font-size:12px;color:#64748b;margin-bottom:6px">Filed ${fmt(inc.createdAt)}</div>
+   ${rows.join('')||'<div class="empty">No details recorded.</div>'}
+  </div></div>
+ </div></div>`;
+}
 function formsCard(f,ctx){
  const forms=facForms(f);
  if(!forms.length) return '';
  return `<div class="card"><div class="hd">Waivers <span class="pill info">${forms.length}</span></div><div class="bd">
-   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device. Signed waivers are saved in your SmartWaiver account.</div>
-   <div class="btnrow">${forms.map(fm=>`<button class="btn btn-p" onclick='go({view:"waiver",formId:"${fm.id}"})'>${IC.doc} ${esc(fm.title)}</button>`).join('')}</div>
+   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device, or pull up waivers that have already been signed.</div>
+   ${forms.map(fm=>`<div class="waivblock">
+     <div class="waivtitle">${esc(fm.title)}</div>
+     <div class="btnrow">
+       <button class="btn btn-p" onclick='go({view:"waiver",formId:"${fm.id}"})'>${IC.doc} Sign new</button>
+       <button class="btn btn-g" onclick='go({view:"waiverLog",formId:"${fm.id}"})'>${IC.list} View signed</button>
+     </div>
+   </div>`).join('')}
  </div></div>`;
+}
+function renderWaiverLog(f,formId){
+ const form=FORMS.find(x=>x.id===formId); if(!form){goMenu();return;}
+ const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,formId:null})`;
+ const cached=SW_CACHE[form.id]||null;
+ let body;
+ if(!SW_ENDPOINT){
+  body=`<div class="empty" style="text-align:left;line-height:1.6">The signed-waiver roster turns on once your SmartWaiver account is connected. In the meantime you can open every signed ${esc(form.title)} here:<br><br>
+   <a href="https://www.smartwaiver.com/console/dashboard/waivers/" target="_blank" rel="noopener" class="btn btn-p" style="text-decoration:none">Open signed waivers in SmartWaiver ↗</a></div>`;
+ } else {
+  body=cached?swRows(cached,form):'<div class="empty">Loading signed waivers…</div>';
+ }
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · Signed waivers</div><h2 class="pt">${esc(form.title)}</h2></div></div>
+  <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button>
+   <a href="${form.url}" target="_blank" rel="noopener" class="btn btn-g" style="text-decoration:none">Sign a new one ↗</a></div>
+  <div class="card"><div class="hd">Signed ${esc(form.title)}${cached?` <span class="pill info">${cached.length}</span>`:''}</div>
+   <div class="bd" id="swlog">${body}</div></div>
+ </div></div>`;
+ if(SW_ENDPOINT&&!cached){ loadSignedWaivers(form).then(rows=>{ const el=document.getElementById('swlog'); if(el) el.innerHTML=rows.length?swRows(rows,form):'<div class="empty">No signed waivers yet.</div>'; })
+   .catch(()=>{ const el=document.getElementById('swlog'); if(el) el.innerHTML=`<div class="empty">Couldn't load signed waivers right now. <a href="${form.url}" target="_blank" rel="noopener" style="color:#0000FF;font-weight:700">Open in SmartWaiver ↗</a></div>`; }); }
+}
+function swRows(list,form){
+ if(!list.length) return '<div class="empty">No signed waivers yet.</div>';
+ return list.map(w=>`<div class="logrow"><div><b style="font-size:14px">${esc(((w.firstName||'')+' '+(w.lastName||'')).trim()||'Signed waiver')}</b>
+   <div style="font-size:12px;color:#64748b;margin-top:2px">${fmt(w.createdOn||w.createdAt)}${w.tag?(' · '+esc(w.tag)):''}</div></div>
+   <a href="https://www.smartwaiver.com/console/dashboard/waivers/${esc(w.waiverId||'')}" target="_blank" rel="noopener" class="pill info" style="text-decoration:none">View ›</a></div>`).join('');
+}
+/* SmartWaiver roster — populated once an API proxy is configured (see SW_ENDPOINT). */
+let SW_READY=false; const SW_CACHE={};
+const SW_ENDPOINT=null; // set to secure proxy URL to enable live roster
+async function loadSignedWaivers(form){
+ if(!SW_ENDPOINT) throw new Error('roster proxy not configured');
+ const r=await fetch(SW_ENDPOINT+'?templateId='+encodeURIComponent(form.templateId));
+ const j=await r.json(); const rows=(j.waivers||j.data||j||[]);
+ SW_CACHE[form.id]=rows; return rows;
 }
 function renderWaiver(f,formId){
  const form=FORMS.find(x=>x.id===formId);
@@ -390,7 +468,7 @@ function renderWaiver(f,formId){
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
   <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
    <div><div class="crumb">${esc(f)} · Waiver</div><h2 class="pt">${esc(form.title)}</h2></div></div>
-  <div class="btnrow" style="margin-bottom:10px"><a href="${form.url}" target="_blank" rel="noopener" class="btn btn-g" style="text-decoration:none">Open full screen ↗</a></div>
+  <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button><a href="${form.url}" target="_blank" rel="noopener" class="btn btn-g" style="text-decoration:none">Open full screen ↗</a></div>
   <div class="card" style="padding:0;overflow:hidden"><iframe src="${form.url}" style="width:100%;height:76vh;border:0;display:block" title="${esc(form.title)}" allow="camera; microphone; geolocation"></iframe></div>
  </div></div>`;
 }
@@ -565,8 +643,8 @@ function tog(w,fd,id){w.querySelectorAll('.toggle').forEach(tg=>tg.querySelector
 function incReveal(val){const water=/water rescue/i.test(val),fa=/first aid/i.test(val),other=/^other$/i.test(val);
  document.querySelectorAll('[data-show]').forEach(el=>{const g=el.dataset.show;el.classList.toggle('hidden',!((g==='water'&&water)||(g==='firstaid'&&fa)||(g==='other'&&other)));});}
 async function saveIncident(f,p){
- const g=k=>{const el=document.querySelector('[data-k="'+k+'"]');return el?el.value.trim():'';};
- const type=incState['i_12']||''; const person=g('i_3');
+ document.querySelectorAll('[data-k]').forEach(el=>{incState[el.dataset.k]=el.value.trim();});
+ const type=incState['i_12']||''; const person=incState['i_3']||'';
  const rec={id:uid('i'),facility:f,pool:p,type:type||'Incident',person,createdAt:new Date().toISOString(),data:Object.assign({},incState)};
  const ok=await cloudInsert('incidents',f,rec); if(!ok) return;
  await refreshDB(); go({sub:null});
@@ -575,6 +653,8 @@ async function saveIncident(f,p){
 /* ---------- Admin (CEO) ---------- */
 function renderAdmin(){
  if(state.view==='waiver'&&state.facility){renderWaiver(state.facility,state.formId);return;}
+ if(state.view==='waiverLog'&&state.facility){renderWaiverLog(state.facility,state.formId);return;}
+ if(state.view==='incidentView'&&state.facility){renderIncidentView(state.facility,state.incId);return;}
  if(state.view==='adminFacility'&&state.facility){ if(state.pool){renderPool(state.facility,state.pool,'admin');return;} renderAdminFacility(state.facility); return; }
  if(state.view==='pool'&&state.facility&&state.pool){renderPool(state.facility,state.pool,'admin');return;}
  const totalPools=FACILITIES.reduce((n,f)=>n+f.pools.length,0);
@@ -621,7 +701,8 @@ function adminPoolTile(f,p){
 /* ---------- icons ---------- */
 const IC={flask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.2 8.3A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.5 15h9"/></svg>',
  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
- doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>'};
+ doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
+ list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'};
 
 /* ---------- signature pad ---------- */
 (function(){const modal=document.getElementById('sigmodal'),canvas=document.getElementById('sigcanvas'),ctx=canvas.getContext('2d');
