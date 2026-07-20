@@ -435,7 +435,8 @@ function renderIncidentView(f,incId){
 function formsCard(f,ctx){
  const forms=facForms(f);
  if(!forms.length) return '';
- return `<div class="card"><div class="hd">Waivers <span class="pill info">${forms.length}</span></div><div class="bd">
+ const signedTotal=DB.forms.filter(s=>s.facility===f&&forms.some(fm=>fm.id===s.formId)).length;
+ return `<div class="card"><div class="hd">Waivers <span class="pill info">${signedTotal}</span></div><div class="bd">
    <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device, or pull up waivers that have already been signed. Signed waivers are stored right in the app.</div>
    ${forms.map(fm=>{const n=DB.forms.filter(s=>s.facility===f&&s.formId===fm.id).length;return `<div class="waivblock">
      <div class="waivtitle">${esc(fm.title)}${n?` <span class="pill info">${n} signed</span>`:''}</div>
