@@ -242,9 +242,10 @@ const FLOWRIDER = [
 ];
 // Facility-level forms. needsPool = only shown where a facility has that pool/ride.
 const FORMS = [
- {id:'flowrider', title:'Flow Rider Waiver', desc:'Participant release of liability for the flow rider', needsPool:'Flow Rider', kind:'waiver', fields:FLOWRIDER},
+ {id:'flowrider', title:'Flow Rider Waiver', desc:'FlowRider release of liability', kind:'waiver', facilities:['DropZone Waterpark','Cove Waterpark'], url:'https://waiver.smartwaiver.com/w/5r6bwgcafbwci6hzwuvjfy/web/'},
+ {id:'scuba', title:'Scuba Waiver', desc:'Scuba release of liability', kind:'waiver', facilities:['Jacobs Aquatic Center'], url:'https://waiver.smartwaiver.com/w/7dkglbbdfzidmb3s7krdwc/web/'},
 ];
-function facForms(f){return FORMS.filter(fm=>!fm.needsPool||poolsOf(f).some(p=>p.toLowerCase().includes(fm.needsPool.toLowerCase())));}
+function facForms(f){return FORMS.filter(fm=>!fm.facilities||fm.facilities.includes(f));}
 function facSubs(f){return DB.forms.filter(s=>s.facility===f).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}
 
 /* ---------------- Store (live cloud — Supabase) ---------------- */
@@ -344,6 +345,7 @@ function renderFacility(){
  const f=session.facility;
  if(state.view==='pool'){renderPool(f,state.pool,'facility');return;}
  if(state.view==='fillForm'){renderFillForm(f,state.formId,'facility');return;}
+ if(state.view==='waiver'){renderWaiver(f,state.formId);return;}
  if(state.view==='incidentPick'){renderIncidentPick(f);return;}
  const pools=poolsOf(f);
  app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
@@ -374,15 +376,22 @@ function renderIncidentPick(f){
   </div></div></div></div></div>`;
 }
 function formsCard(f,ctx){
- const forms=facForms(f); const subs=facSubs(f);
- if(!forms.length && !subs.length) return '';
- return `<div class="card"><div class="hd">Forms <span class="pill info">${subs.length}</span></div><div class="bd">
-   ${ctx==='facility'&&forms.length?`<div style="font-size:12px;color:#64748b;margin-bottom:8px">Available forms</div>
-     <div class="btnrow" style="margin-bottom:14px">${forms.map(fm=>`<button class="btn btn-g" onclick='go({view:"fillForm",formId:"${fm.id}"})'>${IC.doc} ${esc(fm.title)}</button>`).join('')}</div>`:''}
-   <div style="font-size:12px;color:#64748b;margin-bottom:6px">Submitted forms</div>
-   ${subs.length?subs.map(s=>`<div class="logrow"><div><b style="font-size:14px">${esc(s.summary||s.title)}</b>
-     <div style="font-size:12px;color:#64748b;margin-top:2px">${esc(s.summary?s.title+' · ':'')}${fmt(s.createdAt)} · ${esc(s.by||'')}</div></div>
-     ${s.kind==='waiver'?'<span class="pill ok">Signed</span>':`<span class="pill ${s.flags?'warn':'ok'}">${s.flags?(s.flags+' issue'+(s.flags>1?'s':'')):'Complete'}</span>`}</div>`).join(''):'<div class="empty">No forms submitted yet.</div>'}
+ const forms=facForms(f);
+ if(!forms.length) return '';
+ return `<div class="card"><div class="hd">Waivers <span class="pill info">${forms.length}</span></div><div class="bd">
+   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device. Signed waivers are saved in your SmartWaiver account.</div>
+   <div class="btnrow">${forms.map(fm=>`<button class="btn btn-p" onclick='go({view:"waiver",formId:"${fm.id}"})'>${IC.doc} ${esc(fm.title)}</button>`).join('')}</div>
+ </div></div>`;
+}
+function renderWaiver(f,formId){
+ const form=FORMS.find(x=>x.id===formId);
+ if(!form||!form.url){go({view:null,formId:null});return;}
+ const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,formId:null})`;
+ app.innerHTML=`<div class="shell">${topbar()}<div class="wrap">
+  <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
+   <div><div class="crumb">${esc(f)} · Waiver</div><h2 class="pt">${esc(form.title)}</h2></div></div>
+  <div class="btnrow" style="margin-bottom:10px"><a href="${form.url}" target="_blank" rel="noopener" class="btn btn-g" style="text-decoration:none">Open full screen ↗</a></div>
+  <div class="card" style="padding:0;overflow:hidden"><iframe src="${form.url}" style="width:100%;height:76vh;border:0;display:block" title="${esc(form.title)}" allow="camera; microphone; geolocation"></iframe></div>
  </div></div>`;
 }
 /* generic form fill */
@@ -565,6 +574,7 @@ async function saveIncident(f,p){
 
 /* ---------- Admin (CEO) ---------- */
 function renderAdmin(){
+ if(state.view==='waiver'&&state.facility){renderWaiver(state.facility,state.formId);return;}
  if(state.view==='adminFacility'&&state.facility){ if(state.pool){renderPool(state.facility,state.pool,'admin');return;} renderAdminFacility(state.facility); return; }
  if(state.view==='pool'&&state.facility&&state.pool){renderPool(state.facility,state.pool,'admin');return;}
  const totalPools=FACILITIES.reduce((n,f)=>n+f.pools.length,0);
