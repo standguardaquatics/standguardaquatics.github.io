@@ -220,11 +220,11 @@ const INC = [
  {q:'Did this result in fatality?', t:'options', o:['Yes','No','Unknown'], show:'firstaid'},
  {q:'Signs / Symptoms', t:'textarea', show:'firstaid'},
  {q:'Names of staff individuals involved', t:'text', show:'firstaid'},
- {q:'Manager on duty', t:'text', show:'firstaid'},
  {sub:'Other', show:'other'},
  {q:'Type of incident', t:'text', show:'other'},
  {q:'Description of incident', t:'textarea', show:'other'},
  {q:'Names of staff individuals involved', t:'text', show:'other'},
+ {q:'Manager on duty', t:'text', req:1},
  {q:'Completed by', t:'sign'},
  {q:'What Management Staff was notified', t:'text', req:1},
 ];
@@ -704,7 +704,17 @@ function incReveal(val){const water=/water rescue/i.test(val),fa=/first aid/i.te
  document.querySelectorAll('[data-show]').forEach(el=>{const g=el.dataset.show;el.classList.toggle('hidden',!((g==='water'&&water)||(g==='firstaid'&&fa)||(g==='other'&&other)));});}
 async function saveIncident(f,p){
  document.querySelectorAll('[data-k]').forEach(el=>{incState[el.dataset.k]=el.value.trim();});
- const type=incState['i_12']||''; const person=incState['i_3']||'';
+ const type=incState['i_12']||'';
+ const water=/water rescue/i.test(type),fa=/first aid/i.test(type),other=/^other$/i.test(type);
+ const visible=fd=>!fd.show||(fd.show==='water'&&water)||(fd.show==='firstaid'&&fa)||(fd.show==='other'&&other);
+ let idx=0; const missing=[];
+ INC.forEach(fd=>{ if(fd.sub) return; const id='i_'+idx; idx++;
+   if(fd.req&&visible(fd)){ let v=incState[id];
+     if(fd.t==='time') v=(incState[id+'_h']||'')+(incState[id+'_m']||'');
+     if(v==null||v===''||v===false) missing.push(fd.q.replace(/\s*\(.*\)/,'')); }
+ });
+ if(missing.length){ alert('Please complete these required fields:\n• '+missing.join('\n• ')); return; }
+ const person=incState['i_3']||'';
  const rec={id:uid('i'),facility:f,pool:p,type:type||'Incident',person,createdAt:new Date().toISOString(),data:Object.assign({},incState)};
  const ok=await cloudInsert('incidents',f,rec); if(!ok) return;
  await refreshDB(); go({sub:null});
