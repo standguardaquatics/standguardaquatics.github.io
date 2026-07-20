@@ -387,13 +387,14 @@ function renderIncidentView(f,incId){
  if(!inc){goMenu();return;}
  const d=inc.data||{};
  const back=session.role==='admin'?`go({view:'adminFacility'})`:`go({view:null,incId:null})`;
- const rows=[];
+ const rows=[]; let pendingSection=null;
  incByIndex().forEach(m=>{
-  if(m.sub){ rows.push(`<div class="section" style="margin-top:16px">${esc(m.sub.sub)}</div>`); return; }
+  if(m.sub){ pendingSection=`<div class="section" style="margin-top:16px">${esc(m.sub.sub)}</div>`; return; }
   const fd=m.fd; let v;
   if(fd.t==='time'){ const h=d['i_'+m.idx+'_h'],mm=d['i_'+m.idx+'_m']; v=(h||mm)?((h||'')+':'+(mm||'')):''; }
   else v=d['i_'+m.idx];
   if(v==null||v===''||v===false) return;
+  if(pendingSection){ rows.push(pendingSection); pendingSection=null; }
   if(fd.t==='sign'&&typeof v==='string'&&v.indexOf('data:image')===0){
    rows.push(`<div class="frow"><div class="lbl">${esc(fd.q)}</div><div><img src="${v}" style="max-width:280px;width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff"></div></div>`);
   } else {
