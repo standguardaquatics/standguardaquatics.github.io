@@ -437,11 +437,11 @@ function formsCard(f,ctx){
  if(!forms.length) return '';
  const signedTotal=DB.forms.filter(s=>s.facility===f&&forms.some(fm=>fm.id===s.formId)).length;
  return `<div class="card"><div class="hd">Waivers <span class="pill info">${signedTotal}</span></div><div class="bd">
-   <div style="font-size:12px;color:#64748b;margin-bottom:10px">Have participants sign here on this device, or pull up waivers that have already been signed. Signed waivers are stored right in the app.</div>
+   <div style="font-size:12px;color:#64748b;margin-bottom:10px">${ctx==='facility'?'Have participants sign here on this device, or pull up waivers that have already been signed. Signed waivers are stored right in the app.':'Review waivers that have been signed at this facility.'}</div>
    ${forms.map(fm=>{const n=DB.forms.filter(s=>s.facility===f&&s.formId===fm.id).length;return `<div class="waivblock">
      <div class="waivtitle">${esc(fm.title)}${n?` <span class="pill info">${n} signed</span>`:''}</div>
      <div class="btnrow">
-       <button class="btn btn-p" onclick='go({view:"fillForm",formId:"${fm.id}"})'>${IC.doc} Sign new</button>
+       ${ctx==='facility'?`<button class="btn btn-p" onclick='go({view:"fillForm",formId:"${fm.id}"})'>${IC.doc} Sign new</button>`:''}
        <button class="btn btn-g" onclick='go({view:"waiverLog",formId:"${fm.id}"})'>${IC.list} View signed</button>
      </div>
    </div>`}).join('')}
@@ -455,12 +455,12 @@ function renderWaiverLog(f,formId){
   <div class="pagehead"><button class="back" onclick="${back}">‹ Back</button>
    <div><div class="crumb">${esc(f)} · Signed waivers</div><h2 class="pt">${esc(form.title)}</h2></div></div>
   <div class="btnrow" style="margin-bottom:10px"><button class="btn btn-g" onclick="goMenu()">⌂ Main menu</button>
-   <button class="btn btn-p" onclick='go({view:"fillForm",formId:"${form.id}"})'>${IC.doc} Sign a new one</button></div>
+   ${session.role==='admin'?'':`<button class="btn btn-p" onclick='go({view:"fillForm",formId:"${form.id}"})'>${IC.doc} Sign a new one</button>`}</div>
   <div class="card"><div class="hd">Signed ${esc(form.title)} <span class="pill info">${subs.length}</span></div>
    <div class="bd">${subs.length?subs.map(s=>`<div class="logrow" style="cursor:pointer" onclick='go({view:"formView",formId:"${form.id}",subId:${JSON.stringify(s.id)}})'>
      <div><b style="font-size:14px">${esc(s.summary||'Signed waiver')}</b>
       <div style="font-size:12px;color:#64748b;margin-top:2px">${fmt(s.createdAt)}${s.by?(' · '+esc(s.by)):''}</div></div>
-     <span class="pill info">View ›</span></div>`).join(''):'<div class="empty">No signed waivers yet. Tap “Sign a new one” to add the first.</div>'}
+     <span class="pill info">View ›</span></div>`).join(''):`<div class="empty">No signed waivers yet.${session.role==='admin'?'':' Tap “Sign a new one” to add the first.'}</div>`}
    </div></div>
  </div></div>`;
 }
